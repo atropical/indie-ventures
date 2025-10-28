@@ -32,6 +32,17 @@ class IndieVentures < Formula
 
   def caveats
     <<~EOS
+      ⚠️  LOCAL DEVELOPMENT ONLY ⚠️
+
+      This Homebrew installation is intended for local development and testing.
+
+      For production servers, use the direct installation method:
+        curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/install.sh | sudo bash
+
+      DO NOT install Homebrew as root on production servers.
+
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
       Indie Ventures has been installed!
 
       To get started:

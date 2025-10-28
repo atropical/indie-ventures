@@ -21,19 +21,20 @@
 
 ### Installation
 
-```bash
-# Install via Homebrew
-brew tap atropical/indie-ventures
-brew install indie-ventures
-```
+Choose the installation method based on your use case:
 
-### Initialize Your Server
+#### For Production Servers
+
+Use the direct installation script (recommended for security):
 
 ```bash
 # SSH into your server
 ssh root@your-server-ip
 
-# Initialize indie-ventures
+# Install indie-ventures
+curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/install.sh | sudo bash
+
+# Initialize
 indie init
 ```
 
@@ -41,6 +42,21 @@ The CLI will guide you through:
 - Dependency installation (Docker, etc.)
 - Base credential setup
 - Service initialization
+
+#### For Local Development
+
+Use Homebrew on your Mac or Linux development machine:
+
+```bash
+# Install via Homebrew
+brew tap atropical/indie-ventures
+brew install indie-ventures
+
+# Initialize
+indie init
+```
+
+**Security Note:** The direct installation script is recommended for production servers to avoid installing Homebrew as root, which is a security risk. Homebrew is perfect for local development environments.
 
 ### Add Your First Project
 
@@ -204,3 +220,4 @@ Built with:
 ---
 
 Made with ❤️ for indie hackers everywhere.
+This project has started as a vibe coding experiment. Use at your own risk and try to not be too judgemental.

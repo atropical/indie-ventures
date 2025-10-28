@@ -3,20 +3,100 @@
 ## Requirements
 
 ### System Requirements
-- Ubuntu 20.04+ or Debian 11+ (for servers)
-- macOS 11+ (for local development)
+- **Servers:** Ubuntu 20.04+ or Debian 11+ (production)
+- **Development:** macOS 11+ or Linux (local testing)
 - 2+ CPU cores
 - 4GB+ RAM
 - 20GB+ storage
 
 ### Software Requirements
-All dependencies are automatically installed via Homebrew:
+The following dependencies are automatically installed:
 - Docker
 - Docker Compose
-- Gum (for beautiful CLI)
+- Gum (for beautiful CLI prompts)
 - jq (for JSON processing)
 
-## Installation via Homebrew
+## Installation Methods
+
+Choose the appropriate method for your use case:
+
+---
+
+## Production Server Installation (Recommended)
+
+### Direct Installation Script
+
+This is the **recommended and secure** method for production servers. It avoids installing Homebrew as root.
+
+### 1. Install Indie Ventures
+
+SSH into your server and run:
+
+```bash
+# Using sudo (recommended)
+curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/install.sh | sudo bash
+```
+
+Or with a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/install.sh | sudo bash -s v1.0.0
+```
+
+The script will:
+- Download the latest release from GitHub
+- Install to `/opt/indie-ventures`
+- Create symlink at `/usr/local/bin/indie`
+- Check for dependencies (installs on `indie init`)
+
+### 2. Verify installation
+
+```bash
+indie version
+```
+
+You should see:
+```
+Indie Ventures v1.0.0
+Self-hosted Supabase Manager
+https://github.com/atropical/indie-ventures
+```
+
+### 3. Initialize your server
+
+```bash
+indie init
+```
+
+The CLI will guide you through:
+- Dependency installation (Docker, etc.)
+- Docker setup
+- Base configuration
+- Service initialization
+
+### Uninstallation
+
+To remove Indie Ventures from your server:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/uninstall.sh | sudo bash
+```
+
+This will:
+- Remove the installation from `/opt/indie-ventures`
+- Remove the symlink from `/usr/local/bin/indie`
+- Ask if you want to remove project data
+- List what remains (Docker, dependencies, etc.)
+
+---
+
+## Local Development Installation
+
+### Installation via Homebrew
+
+For local development and testing on macOS or Linux, use Homebrew.
+
+⚠️ **Note:** Do NOT use this method on production servers as root.
 
 ### 1. Install Homebrew (if not already installed)
 
@@ -54,31 +134,7 @@ This will automatically install all dependencies.
 indie version
 ```
 
-You should see:
-```
-Indie Ventures v1.0.0
-Self-hosted Supabase Manager
-https://github.com/atropical/indie-ventures
-```
-
-## Post-Installation
-
-### On a Server
-
-SSH into your server and initialize:
-
-```bash
-ssh root@your-server-ip
-indie init
-```
-
-The CLI will guide you through:
-- Dependency installation
-- Docker setup
-- Base configuration
-- Service initialization
-
-### Local Development
+### 5. Initialize
 
 For local testing:
 
@@ -86,13 +142,49 @@ For local testing:
 indie init
 ```
 
-Note: On macOS, you'll need Docker Desktop installed and running.
+**Note:** On macOS, you'll need Docker Desktop installed and running.
+
+### Uninstallation
+
+```bash
+brew uninstall indie-ventures
+brew untap atropical/indie-ventures
+```
+
+---
 
 ## Troubleshooting
 
-### Docker not found
+### Server Installation Issues
 
-If you see "Docker not found", install it manually:
+#### Installation script fails
+
+If the direct installation script fails:
+
+1. Check you're running as root/sudo:
+   ```bash
+   whoami  # Should show 'root' or use sudo
+   ```
+
+2. Verify internet connectivity:
+   ```bash
+   curl -I https://github.com
+   ```
+
+3. Check system requirements:
+   ```bash
+   cat /etc/os-release  # Should be Ubuntu/Debian
+   ```
+
+#### Docker not found
+
+The installation checks for Docker but doesn't install it automatically. Run:
+
+```bash
+indie init
+```
+
+This will detect and install Docker. Or install manually:
 
 **Ubuntu/Debian:**
 ```bash
@@ -100,19 +192,32 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 ```
 
-**macOS:**
-Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+#### Permission denied errors
 
-### Permission denied
-
-If you encounter permission errors:
+After Docker installation, add your user to the docker group:
 
 ```bash
 sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-### Gum not available
+#### Command not found after installation
+
+Ensure `/usr/local/bin` is in your PATH:
+
+```bash
+echo $PATH | grep /usr/local/bin
+```
+
+If not, add to `~/.bashrc` or `~/.zshrc`:
+```bash
+export PATH="/usr/local/bin:$PATH"
+source ~/.bashrc
+```
+
+### Homebrew Installation Issues
+
+#### Gum not available
 
 Gum is optional but recommended. If installation fails, the CLI will work with fallback prompts.
 
@@ -121,28 +226,37 @@ To install manually:
 brew install gum
 ```
 
+#### Docker Desktop not running (macOS)
+
+Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop), then ensure it's running before using `indie init`.
+
+#### Homebrew permissions
+
+If you encounter permission errors with Homebrew:
+```bash
+sudo chown -R $(whoami) /usr/local/Homebrew
+```
+
+---
+
+## Comparison: Server vs Homebrew
+
+| Feature | Server Installation | Homebrew Installation |
+|---------|-------------------|---------------------|
+| **Use Case** | Production servers | Local development |
+| **Installation** | Direct script | Homebrew |
+| **Location** | `/opt/indie-ventures` | `/usr/local/Cellar` |
+| **Requires Root** | Yes | No |
+| **Security** | ✓ Recommended | ⚠️ Not for servers |
+| **Update Method** | Re-run install script | `brew upgrade` |
+| **Uninstall** | Run uninstall script | `brew uninstall` |
+
 ## Next Steps
 
 After installation:
 1. [Server Setup](SETUP.md) - Configure your server
 2. [Add Your First Project](../README.md#quick-start) - Create a Supabase project
 3. [Domain Configuration](DOMAINS.md) - Set up custom domains
-
-## Uninstallation
-
-To remove Indie Ventures:
-
-```bash
-brew uninstall indie-ventures
-brew untap atropical/indie-ventures
-```
-
-Note: This will not remove Docker or other dependencies, nor will it remove your project data in `/opt/indie-ventures/`.
-
-To completely remove all data:
-```bash
-sudo rm -rf /opt/indie-ventures
-```
 
 ## Getting Help
 
