@@ -1,0 +1,66 @@
+  # Isolated services for project: {{PROJECT_NAME}}
+  indie-{{PROJECT_NAME}}-kong:
+    image: kong:2.8.1
+    container_name: indie-{{PROJECT_NAME}}-kong
+    restart: unless-stopped
+    ports:
+      - "{{PORTS_OFFSET}}00:8000"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+    volumes:
+      - ./volumes/{{PROJECT_NAME}}/kong:/var/lib/kong
+    depends_on:
+      - postgres
+    networks:
+      - indie-network
+
+  indie-{{PROJECT_NAME}}-gotrue:
+    image: supabase/gotrue:v2.99.0
+    container_name: indie-{{PROJECT_NAME}}-gotrue
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/{{PROJECT_NAME}}
+      GOTRUE_JWT_SECRET: ${{{PROJECT_NAME_UPPER}}_JWT_SECRET}
+    depends_on:
+      - postgres
+    networks:
+      - indie-network
+
+  indie-{{PROJECT_NAME}}-postgrest:
+    image: postgrest/postgrest:v11.2.2
+    container_name: indie-{{PROJECT_NAME}}-postgrest
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/{{PROJECT_NAME}}
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${{{PROJECT_NAME_UPPER}}_JWT_SECRET}
+    depends_on:
+      - postgres
+    networks:
+      - indie-network
+
+  indie-{{PROJECT_NAME}}-storage:
+    image: supabase/storage-api:v0.43.11
+    container_name: indie-{{PROJECT_NAME}}-storage
+    restart: unless-stopped
+    environment:
+      ANON_KEY: ${{{PROJECT_NAME_UPPER}}_ANON_KEY}
+      SERVICE_KEY: ${{{PROJECT_NAME_UPPER}}_SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://indie-{{PROJECT_NAME}}-postgrest:3000
+      PGRST_JWT_SECRET: ${{{PROJECT_NAME_UPPER}}_JWT_SECRET}
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/{{PROJECT_NAME}}
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+    volumes:
+      - ./volumes/{{PROJECT_NAME}}/storage:/var/lib/storage
+    depends_on:
+      - postgres
+    networks:
+      - indie-network

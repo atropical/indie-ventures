@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Indie Ventures - Self-hosted Supabase Manager
+# https://github.com/atropical/indie-ventures
+
+VERSION="1.0.0"
+
+# Determine script directory (works with symlinks from Homebrew)
+if [ -L "$0" ]; then
+    SCRIPT_DIR="$(dirname "$(readlink "$0")")"
+else
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+
+# Set lib directory
+LIB_DIR="${SCRIPT_DIR}/../lib"
+
+# Load core utilities
+# shellcheck source=../lib/core/utils.sh
+source "${LIB_DIR}/core/utils.sh"
+
+# Show version
+show_version() {
+    echo "Indie Ventures v${VERSION}"
+    echo "Self-hosted Supabase Manager"
+    echo "https://github.com/atropical/indie-ventures"
+}
+
+# Show help
+show_help() {
+    cat << EOF
+Indie Ventures - Self-hosted Supabase Manager
+
+Usage:
+  indie <command> [options]
+
+Commands:
+  init              Initialize server (first time setup)
+  add               Add new project (interactive)
+  list              List all projects
+  domains <name>    Manage project domains
+  ssl <command>     Manage SSL certificates (enable, renew, list, etc.)
+  backup <name>     Export project for migration
+  remove <name>     Remove project (with backup)
+  status            Check service health
+  version           Show version
+  help              Show this help
+
+Examples:
+  indie init                    # Initialize server
+  indie add                     # Add new project (interactive)
+  indie list                    # List all projects
+  indie domains my-blog         # Manage domains for my-blog
+  indie ssl enable my-blog      # Enable SSL for my-blog
+  indie ssl renew               # Renew all certificates
+  indie backup my-blog          # Export my-blog for migration
+  indie remove my-blog          # Remove my-blog (creates backup first)
+  indie status                  # Check if services are running
+
+Documentation:
+  https://github.com/atropical/indie-ventures/tree/main/docs
+
+Report issues:
+  https://github.com/atropical/indie-ventures/issues
+
+EOF
+}
+
+# Main command router
+main() {
+    # Check if command is provided
+    if [ $# -eq 0 ]; then
+        show_help
+        exit 0
+    fi
+
+    local command="$1"
+    shift
+
+    case "${command}" in
+        init)
+            # shellcheck source=../lib/commands/init.sh
+            source "${LIB_DIR}/commands/init.sh"
+            cmd_init "$@"
+            ;;
+        add)
+            # shellcheck source=../lib/commands/add.sh
+            source "${LIB_DIR}/commands/add.sh"
+            cmd_add "$@"
+            ;;
+        list|ls)
+            # shellcheck source=../lib/commands/list.sh
+            source "${LIB_DIR}/commands/list.sh"
+            cmd_list "$@"
+            ;;
+        domains)
+            # shellcheck source=../lib/commands/domains.sh
+            source "${LIB_DIR}/commands/domains.sh"
+            cmd_domains "$@"
+            ;;
+        ssl|cert|certs|certificate)
+            # shellcheck source=../lib/commands/ssl.sh
+            source "${LIB_DIR}/commands/ssl.sh"
+            cmd_ssl "$@"
+            ;;
+        backup|export)
+            # shellcheck source=../lib/commands/backup.sh
+            source "${LIB_DIR}/commands/backup.sh"
+            cmd_backup "$@"
+            ;;
+        remove|rm|delete)
+            # shellcheck source=../lib/commands/remove.sh
+            source "${LIB_DIR}/commands/remove.sh"
+            cmd_remove "$@"
+            ;;
+        status|health)
+            # shellcheck source=../lib/commands/status.sh
+            source "${LIB_DIR}/commands/status.sh"
+            cmd_status "$@"
+            ;;
+        version|-v|--version)
+            show_version
+            ;;
+        help|-h|--help)
+            show_help
+            ;;
+        *)
+            error "Unknown command: ${command}"
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Run main function
+main "$@"

@@ -1,0 +1,35 @@
+# Server-side data (never commit)
+.env
+.env.base
+.env.projects
+volumes/
+backups/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test files
+test-output/
+.test/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# LLM files
+.claude/
+.cursor/
+.windsurf/
