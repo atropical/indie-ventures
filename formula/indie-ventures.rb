@@ -1,10 +1,10 @@
 class IndieVentures < Formula
   desc "Self-hosted Supabase manager for running multiple isolated projects"
   homepage "https://github.com/atropical/indie-ventures"
-  url "https://github.com/atropical/indie-ventures/archive/v1.0.0.tar.gz"
+  url "https://github.com/atropical/indie-ventures/archive/v0.1.0-alpha.tar.gz"
   sha256 "" # Will be generated on release
   license "OSL-3.0"
-  version "1.0.0"
+  version "0.1.0-alpha"
 
   depends_on "gum"
   depends_on "docker"
@@ -12,16 +12,12 @@ class IndieVentures < Formula
   depends_on "jq"
 
   def install
-    # Install the main binary
-    bin.install "bin/indie"
-
-    # Install library files
+    # Install everything to libexec
+    libexec.install "bin"
     libexec.install "lib"
-
-    # Install templates
     libexec.install "templates"
 
-    # Create wrapper script that sets up the environment
+    # Create wrapper script in bin that sets up the environment
     (bin/"indie").write <<~EOS
       #!/bin/bash
       export INDIE_LIB_DIR="#{libexec}/lib"
