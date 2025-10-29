@@ -1,6 +1,6 @@
   # Isolated services for project: {{PROJECT_NAME}}
   indie-{{PROJECT_NAME}}-kong:
-    image: kong:2.8.1
+    image: kong:latest
     container_name: indie-{{PROJECT_NAME}}-kong
     restart: unless-stopped
     ports:
@@ -18,7 +18,7 @@
       - indie-network
 
   indie-{{PROJECT_NAME}}-gotrue:
-    image: supabase/gotrue:v2.99.0
+    image: supabase/gotrue:latest
     container_name: indie-{{PROJECT_NAME}}-gotrue
     restart: unless-stopped
     environment:
@@ -33,7 +33,7 @@
       - indie-network
 
   indie-{{PROJECT_NAME}}-postgrest:
-    image: postgrest/postgrest:v11.2.2
+    image: postgrest/postgrest:latest
     container_name: indie-{{PROJECT_NAME}}-postgrest
     restart: unless-stopped
     environment:
@@ -47,7 +47,7 @@
       - indie-network
 
   indie-{{PROJECT_NAME}}-storage:
-    image: supabase/storage-api:v0.43.11
+    image: supabase/storage-api:latest
     container_name: indie-{{PROJECT_NAME}}-storage
     restart: unless-stopped
     environment:

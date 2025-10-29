@@ -1,12 +1,10 @@
-version: '3.8'
-
 # Base services for Indie Ventures
 # Includes PostgreSQL and Nginx reverse proxy
 
 services:
   # PostgreSQL - Shared database server
   postgres:
-    image: supabase/postgres:15.1.1.78
+    image: supabase/postgres:latest
     container_name: indie-postgres
     restart: unless-stopped
     ports:

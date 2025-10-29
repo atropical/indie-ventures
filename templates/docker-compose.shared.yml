@@ -4,7 +4,7 @@
 
   # Kong - API Gateway
   indie-kong:
-    image: kong:2.8.1
+    image: kong:latest
     container_name: indie-kong
     restart: unless-stopped
     environment:
@@ -21,7 +21,7 @@
 
   # GoTrue - Authentication
   indie-gotrue:
-    image: supabase/gotrue:v2.99.0
+    image: supabase/gotrue:latest
     container_name: indie-gotrue
     restart: unless-stopped
     environment:
@@ -52,7 +52,7 @@
 
   # PostgREST - RESTful API
   indie-postgrest:
-    image: postgrest/postgrest:v11.2.2
+    image: postgrest/postgrest:latest
     container_name: indie-postgrest
     restart: unless-stopped
     environment:
@@ -68,7 +68,7 @@
 
   # Realtime - WebSocket support
   indie-realtime:
-    image: supabase/realtime:v2.25.35
+    image: supabase/realtime:latest
     container_name: indie-realtime
     restart: unless-stopped
     environment:
@@ -94,7 +94,7 @@
 
   # Storage - File storage
   indie-storage:
-    image: supabase/storage-api:v0.43.11
+    image: supabase/storage-api:latest
     container_name: indie-storage
     restart: unless-stopped
     environment:
@@ -121,7 +121,7 @@
 
   # ImgProxy - Image transformation
   indie-imgproxy:
-    image: darthsim/imgproxy:v3.8.0
+    image: darthsim/imgproxy:latest
     container_name: indie-imgproxy
     restart: unless-stopped
     environment:
@@ -135,7 +135,7 @@
 
   # Meta - Database management
   indie-meta:
-    image: supabase/postgres-meta:v0.68.0
+    image: supabase/postgres-meta:latest
     container_name: indie-meta
     restart: unless-stopped
     environment:
@@ -152,7 +152,7 @@
 
   # Studio - Web UI
   indie-studio:
-    image: supabase/studio:20250121-76c91bc
+    image: supabase/studio:latest
     container_name: indie-studio
     restart: unless-stopped
     ports:
