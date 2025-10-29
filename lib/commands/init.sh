@@ -81,7 +81,9 @@ cmd_init() {
         info "Using existing PostgreSQL password"
         postgres_password=$(grep "POSTGRES_PASSWORD" "${ENV_BASE}" | cut -d'=' -f2)
     else
-        postgres_password=$(prompt_password "PostgreSQL password (for superuser 'postgres')")
+        echo ""
+        info "Set PostgreSQL superuser password"
+        postgres_password=$(prompt_password_confirm "PostgreSQL password (for superuser 'postgres')")
     fi
 
     local dashboard_password
@@ -89,7 +91,9 @@ cmd_init() {
         info "Using existing Dashboard password"
         dashboard_password=$(grep "DASHBOARD_PASSWORD" "${ENV_BASE}" | cut -d'=' -f2)
     else
-        dashboard_password=$(prompt_password "Studio Dashboard password")
+        echo ""
+        info "Set Studio Dashboard password"
+        dashboard_password=$(prompt_password_confirm "Studio Dashboard password")
     fi
 
     # Create .env.base

@@ -42,6 +42,25 @@ prompt_password() {
     fi
 }
 
+# Prompt for password with confirmation
+prompt_password_confirm() {
+    local prompt="$1"
+    local password
+    local password_confirm
+
+    while true; do
+        password=$(prompt_password "$prompt")
+        password_confirm=$(prompt_password "$prompt (confirm)")
+
+        if [ "$password" = "$password_confirm" ]; then
+            echo "$password"
+            return 0
+        else
+            error "Passwords do not match. Please try again."
+        fi
+    done
+}
+
 # Prompt for choice from list
 prompt_choice() {
     local prompt="$1"
