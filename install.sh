@@ -5,7 +5,7 @@ set -euo pipefail
 # Indie Ventures - Server Installation Script
 # https://github.com/atropical/indie-ventures
 
-VERSION="${1:-latest}"
+INDIE_VERSION="${1:-latest}"
 INSTALL_DIR="/opt/indie-ventures"
 BIN_LINK="/usr/local/bin/indie"
 REPO="atropical/indie-ventures"
@@ -29,6 +29,25 @@ check_root() {
         echo "Please run: curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash"
         exit 1
     fi
+}
+
+# Prompt for installation directory
+prompt_install_dir() {
+    echo ""
+    info "Where would you like to install Indie Ventures?"
+    echo "  Default: /opt/indie-ventures (recommended for production)"
+    echo "  Custom: Specify any directory (e.g., ./local-test for testing)"
+    echo ""
+    read -p "Installation directory [/opt/indie-ventures]: " user_dir
+
+    # Use default if empty
+    if [ -z "$user_dir" ]; then
+        INSTALL_DIR="/opt/indie-ventures"
+    else
+        INSTALL_DIR="$user_dir"
+    fi
+
+    info "Will install to: ${INSTALL_DIR}"
 }
 
 # Detect OS
@@ -167,9 +186,10 @@ main() {
     
     check_root
     detect_os
-    
+    prompt_install_dir
+
     # Determine version to install
-    local install_version="$VERSION"
+    local install_version="$INDIE_VERSION"
     if [ "$install_version" = "latest" ]; then
         install_version=$(get_latest_version)
     fi
