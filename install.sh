@@ -31,25 +31,6 @@ check_root() {
     fi
 }
 
-# Prompt for installation directory
-prompt_install_dir() {
-    echo ""
-    info "Where would you like to install Indie Ventures?"
-    echo "  Default: /opt/indie-ventures (recommended for production)"
-    echo "  Custom: Specify any directory (e.g., ./local-test for testing)"
-    echo ""
-    read -p "Installation directory [/opt/indie-ventures]: " user_dir
-
-    # Use default if empty
-    if [ -z "$user_dir" ]; then
-        INSTALL_DIR="/opt/indie-ventures"
-    else
-        INSTALL_DIR="$user_dir"
-    fi
-
-    info "Will install to: ${INSTALL_DIR}"
-}
-
 # Detect OS
 detect_os() {
     if [ ! -f /etc/os-release ]; then
@@ -186,7 +167,6 @@ main() {
     
     check_root
     detect_os
-    prompt_install_dir
 
     # Determine version to install
     local install_version="$INDIE_VERSION"
