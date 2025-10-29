@@ -37,7 +37,7 @@ prompt_password() {
         # Fallback to read -s
         local result
         read -rsp "${prompt}: " result
-        echo ""
+        echo "" >&2
         echo "${result}"
     fi
 }
