@@ -18,7 +18,7 @@
       - indie-network
 
   indie-{{PROJECT_NAME}}-gotrue:
-    image: supabase/gotrue:latest
+    image: supabase/gotrue
     container_name: indie-{{PROJECT_NAME}}-gotrue
     restart: unless-stopped
     environment:
@@ -33,7 +33,7 @@
       - indie-network
 
   indie-{{PROJECT_NAME}}-postgrest:
-    image: postgrest/postgrest:latest
+    image: postgrest/postgrest
     container_name: indie-{{PROJECT_NAME}}-postgrest
     restart: unless-stopped
     environment:
@@ -47,7 +47,7 @@
       - indie-network
 
   indie-{{PROJECT_NAME}}-storage:
-    image: supabase/storage-api:latest
+    image: supabase/storage-api
     container_name: indie-{{PROJECT_NAME}}-storage
     restart: unless-stopped
     environment:

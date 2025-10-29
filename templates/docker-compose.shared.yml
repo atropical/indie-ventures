@@ -21,7 +21,7 @@
 
   # GoTrue - Authentication
   indie-gotrue:
-    image: supabase/gotrue:latest
+    image: supabase/gotrue
     container_name: indie-gotrue
     restart: unless-stopped
     environment:
@@ -52,7 +52,7 @@
 
   # PostgREST - RESTful API
   indie-postgrest:
-    image: postgrest/postgrest:latest
+    image: postgrest/postgrest
     container_name: indie-postgrest
     restart: unless-stopped
     environment:
@@ -68,7 +68,7 @@
 
   # Realtime - WebSocket support
   indie-realtime:
-    image: supabase/realtime:latest
+    image: supabase/realtime
     container_name: indie-realtime
     restart: unless-stopped
     environment:
@@ -94,7 +94,7 @@
 
   # Storage - File storage
   indie-storage:
-    image: supabase/storage-api:latest
+    image: supabase/storage-api
     container_name: indie-storage
     restart: unless-stopped
     environment:
@@ -121,7 +121,7 @@
 
   # ImgProxy - Image transformation
   indie-imgproxy:
-    image: darthsim/imgproxy:latest
+    image: darthsim/imgproxy
     container_name: indie-imgproxy
     restart: unless-stopped
     environment:
