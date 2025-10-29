@@ -60,14 +60,44 @@ get_latest_version() {
     info "Fetching latest version..."
     
     local latest
-    latest=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    # Try to get the latest non-prerelease first
+    latest=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    
+    # If that fails (404 or no stable releases), get the most recent release including prereleases
+    if [ -z "$latest" ]; then
+        warn "No stable release found, checking for prereleases..."
+        latest=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases" 2>/dev/null | grep '"tag_name"' | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
     
     if [ -z "$latest" ]; then
-        error "Failed to fetch latest version"
+        error "Failed to fetch latest version from GitHub"
+        error "Please specify a version explicitly (e.g. v0.1.0-alpha):"
+        echo "  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash -s <version>"
         exit 1
     fi
     
     echo "$latest"
+}
+
+# Validate that a specific version exists
+validate_version() {
+    local version="$1"
+    
+    info "Validating version ${version}..."
+    
+    # Check if the tag exists
+    local status_code
+    status_code=$(curl -fsSL -o /dev/null -w "%{http_code}" "https://api.github.com/repos/${REPO}/git/refs/tags/${version}")
+    
+    if [ "$status_code" != "200" ]; then
+        error "Version ${version} not found in repository"
+        echo ""
+        echo "Available versions: https://github.com/${REPO}/releases"
+        echo ""
+        echo "Try using 'latest' to install the most recent version:"
+        echo "  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash"
+        exit 1
+    fi
 }
 
 # Download and extract release
@@ -172,6 +202,9 @@ main() {
     local install_version="$INDIE_VERSION"
     if [ "$install_version" = "latest" ]; then
         install_version=$(get_latest_version)
+    else
+        # Validate user-specified version exists
+        validate_version "$install_version"
     fi
     
     info "Installing version: ${install_version}"
@@ -200,6 +233,8 @@ main() {
     success "Installation complete!"
     echo "======================================"
     echo ""
+    echo "Installed version: ${install_version}"
+    echo ""
     echo "Next steps:"
     echo "  1. Initialize your server:"
     echo "     indie init"
@@ -209,6 +244,10 @@ main() {
     echo ""
     echo "  3. List projects:"
     echo "     indie list"
+    echo ""
+    echo "To install a specific version:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash -s <version>"
+    echo "  Example: sudo bash -s v0.1.0-alpha"
     echo ""
     echo "Documentation: https://github.com/${REPO}"
     echo ""
