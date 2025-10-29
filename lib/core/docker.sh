@@ -34,6 +34,14 @@ start_services() {
 
     info "Starting Docker services..."
 
+    # Merge environment files for docker-compose
+    if [ -f "${ENV_BASE}" ]; then
+        cat "${ENV_BASE}" > "${INDIE_DIR}/.env" 2>/dev/null || true
+        if [ -f "${ENV_PROJECTS}" ]; then
+            cat "${ENV_PROJECTS}" >> "${INDIE_DIR}/.env" 2>/dev/null || true
+        fi
+    fi
+
     if ! in_indie_dir ${compose_cmd} up -d; then
         error "Failed to start services"
         return 1
@@ -65,6 +73,14 @@ restart_services() {
     compose_cmd=$(get_compose_cmd)
 
     info "Restarting Docker services..."
+
+    # Merge environment files for docker-compose
+    if [ -f "${ENV_BASE}" ]; then
+        cat "${ENV_BASE}" > "${INDIE_DIR}/.env" 2>/dev/null || true
+        if [ -f "${ENV_PROJECTS}" ]; then
+            cat "${ENV_PROJECTS}" >> "${INDIE_DIR}/.env" 2>/dev/null || true
+        fi
+    fi
 
     if ! in_indie_dir ${compose_cmd} restart; then
         error "Failed to restart services"
