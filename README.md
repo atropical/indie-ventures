@@ -39,6 +39,7 @@ indie init
 ```
 
 The CLI will guide you through:
+- Choosing data directory location
 - Dependency installation (Docker, etc.)
 - Base credential setup
 - Service initialization

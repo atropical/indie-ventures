@@ -69,9 +69,10 @@ indie init
 ```
 
 The CLI will guide you through:
+- Choosing data directory (default: `/opt/indie-ventures`)
 - Dependency installation (Docker, etc.)
 - Docker setup
-- Base configuration
+- Base configuration (PostgreSQL, Dashboard passwords)
 - Service initialization
 
 ### Uninstallation
@@ -85,6 +86,7 @@ curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/unins
 This will:
 - Remove the installation from `/opt/indie-ventures`
 - Remove the symlink from `/usr/local/bin/indie`
+- Remove configuration files (`/etc/indie-ventures.conf` or `~/.indie-ventures.conf`)
 - Ask if you want to remove project data
 - List what remains (Docker, dependencies, etc.)
 

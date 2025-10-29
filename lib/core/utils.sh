@@ -21,6 +21,15 @@ else
     NC=''
 fi
 
+# Load configuration if it exists
+if [ -f "/etc/indie-ventures.conf" ]; then
+    # shellcheck source=/dev/null
+    source "/etc/indie-ventures.conf"
+elif [ -f "${HOME}/.indie-ventures.conf" ]; then
+    # shellcheck source=/dev/null
+    source "${HOME}/.indie-ventures.conf"
+fi
+
 # Project data directory
 INDIE_DIR="${INDIE_DIR:-/opt/indie-ventures}"
 PROJECTS_FILE="${INDIE_DIR}/projects/registry.json"

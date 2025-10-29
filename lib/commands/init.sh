@@ -10,6 +10,27 @@ source "${LIB_DIR}/ui/prompts.sh"
 cmd_init() {
     show_header "Indie Ventures Initialization"
 
+    # Prompt for data directory
+    echo ""
+    info "Where would you like to store Indie Ventures data and projects?"
+    echo "  This will contain Docker volumes, project configurations, and backups."
+    echo "  Default: /opt/indie-ventures (recommended for production servers)"
+    echo ""
+    read -p "Data directory [/opt/indie-ventures]: " user_data_dir
+
+    # Use default if empty, otherwise use provided path
+    if [ -n "$user_data_dir" ]; then
+        INDIE_DIR="$user_data_dir"
+        # Update dependent paths
+        PROJECTS_FILE="${INDIE_DIR}/projects/registry.json"
+        ENV_BASE="${INDIE_DIR}/.env.base"
+        ENV_PROJECTS="${INDIE_DIR}/.env.projects"
+        info "Using data directory: ${INDIE_DIR}"
+    else
+        info "Using default directory: ${INDIE_DIR}"
+    fi
+    echo ""
+
     # Check if already initialized
     if is_initialized; then
         warning "Indie Ventures is already initialized at ${INDIE_DIR}"
@@ -33,6 +54,18 @@ cmd_init() {
     # Create directory structure
     info "Creating directory structure..."
     mkdir -p "${INDIE_DIR}"/{projects,nginx/sites,volumes,backups}
+
+    # Save config to standard location so other commands can find it
+    local config_file="/etc/indie-ventures.conf"
+    if is_root; then
+        echo "INDIE_DIR=${INDIE_DIR}" > "${config_file}"
+        success "Saved configuration to ${config_file}"
+    else
+        # For non-root users, save to home directory
+        config_file="${HOME}/.indie-ventures.conf"
+        echo "INDIE_DIR=${INDIE_DIR}" > "${config_file}"
+        success "Saved configuration to ${config_file}"
+    fi
 
     # Initialize projects registry
     if ! [ -f "${PROJECTS_FILE}" ]; then

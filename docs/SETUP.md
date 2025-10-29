@@ -63,6 +63,12 @@ indie init
 
 You'll be prompted for:
 
+**Data Directory:**
+- Where to store Indie Ventures data and projects
+- Default: `/opt/indie-ventures` (recommended for production)
+- You can specify a custom path (e.g., `/home/indie/data` or `./local-test`)
+- This contains Docker volumes, project configurations, and backups
+
 **PostgreSQL Password:**
 - This is the master password for the PostgreSQL superuser
 - Choose a strong password and save it securely

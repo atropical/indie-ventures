@@ -7,7 +7,20 @@ set -euo pipefail
 
 INSTALL_DIR="/opt/indie-ventures"
 BIN_LINK="/usr/local/bin/indie"
-DATA_DIR="/opt/indie-ventures/data"
+CONFIG_FILE_SYSTEM="/etc/indie-ventures.conf"
+CONFIG_FILE_USER="${HOME}/.indie-ventures.conf"
+
+# Try to load actual data directory from config
+DATA_DIR="/opt/indie-ventures"
+if [ -f "$CONFIG_FILE_SYSTEM" ]; then
+    # shellcheck source=/dev/null
+    source "$CONFIG_FILE_SYSTEM"
+    DATA_DIR="${INDIE_DIR:-$DATA_DIR}"
+elif [ -f "$CONFIG_FILE_USER" ]; then
+    # shellcheck source=/dev/null
+    source "$CONFIG_FILE_USER"
+    DATA_DIR="${INDIE_DIR:-$DATA_DIR}"
+fi
 
 # Colors
 RED='\033[0;31m'
@@ -39,17 +52,28 @@ check_installed() {
 # Remove installation
 remove_installation() {
     info "Removing Indie Ventures installation..."
-    
+
     # Remove symlink
     if [ -L "$BIN_LINK" ]; then
         rm -f "$BIN_LINK"
         success "Removed symlink: ${BIN_LINK}"
     fi
-    
+
     # Remove installation directory
     if [ -d "$INSTALL_DIR" ]; then
         rm -rf "$INSTALL_DIR"
         success "Removed directory: ${INSTALL_DIR}"
+    fi
+
+    # Remove config files
+    if [ -f "$CONFIG_FILE_SYSTEM" ]; then
+        rm -f "$CONFIG_FILE_SYSTEM"
+        success "Removed config: ${CONFIG_FILE_SYSTEM}"
+    fi
+
+    if [ -f "$CONFIG_FILE_USER" ]; then
+        rm -f "$CONFIG_FILE_USER"
+        success "Removed config: ${CONFIG_FILE_USER}"
     fi
 }
 
