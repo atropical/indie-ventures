@@ -5,7 +5,23 @@ set -euo pipefail
 # Indie Ventures - Server Installation Script
 # https://github.com/atropical/indie-ventures
 
-INDIE_VERSION="${1:-latest}"
+# Parse arguments
+INDIE_VERSION="latest"
+SKIP_DEPS=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-deps)
+            SKIP_DEPS=true
+            shift
+            ;;
+        *)
+            INDIE_VERSION="$1"
+            shift
+            ;;
+    esac
+done
+
 INSTALL_DIR="/opt/indie-ventures"
 BIN_LINK="/usr/local/bin/indie"
 REPO="atropical/indie-ventures"
@@ -57,7 +73,7 @@ detect_os() {
 
 # Get latest version from GitHub
 get_latest_version() {
-    info "Fetching latest version..."
+    info "Fetching latest version…"
     
     local latest
     # Try to get the latest non-prerelease first
@@ -65,7 +81,7 @@ get_latest_version() {
     
     # If that fails (404 or no stable releases), get the most recent release including prereleases
     if [ -z "$latest" ]; then
-        warn "No stable release found, checking for prereleases..."
+        warn "No stable release found, checking for prereleases…"
         latest=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases" 2>/dev/null | grep '"tag_name"' | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
     fi
     
@@ -83,7 +99,7 @@ get_latest_version() {
 validate_version() {
     local version="$1"
     
-    info "Validating version ${version}..."
+    info "Validating version ${version}…"
     
     # Check if the tag exists
     local status_code
@@ -107,7 +123,7 @@ download_and_extract() {
     local temp_dir
     temp_dir=$(mktemp -d)
     
-    info "Downloading Indie Ventures ${version}..."
+    info "Downloading Indie Ventures ${version}…"
     
     if ! curl -fsSL "$download_url" -o "${temp_dir}/indie-ventures.tar.gz"; then
         error "Failed to download from ${download_url}"
@@ -115,7 +131,7 @@ download_and_extract() {
         exit 1
     fi
     
-    info "Extracting to ${INSTALL_DIR}..."
+    info "Extracting to ${INSTALL_DIR}…"
     
     # Create install directory
     mkdir -p "$INSTALL_DIR"
@@ -148,7 +164,7 @@ download_and_extract() {
 
 # Create symlink
 create_symlink() {
-    info "Creating symlink..."
+    info "Creating symlink…"
     
     # Remove existing symlink if it exists
     if [ -L "$BIN_LINK" ]; then
@@ -166,7 +182,7 @@ create_symlink() {
 
 # Check dependencies
 check_dependencies() {
-    info "Checking dependencies..."
+    info "Checking dependencies…"
     
     local missing=()
     
@@ -178,14 +194,142 @@ check_dependencies() {
         missing+=("jq")
     fi
     
-    if [ ${#missing[@]} -gt 0 ]; then
-        warn "Missing dependencies: ${missing[*]}"
-        echo ""
-        echo "These will be installed when you run: indie init"
-        echo ""
-    else
-        success "All core dependencies are installed"
+    if ! command -v gum &> /dev/null; then
+        missing+=("gum")
     fi
+    
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "${missing[@]}"
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Install dependencies
+install_dependencies() {
+    info "Installing dependencies…"
+    
+    local missing
+    missing=$(check_dependencies) || true
+    
+    if [ -z "$missing" ]; then
+        success "All dependencies are already installed"
+        return 0
+    fi
+    
+    warn "Missing dependencies: ${missing}"
+    echo ""
+    
+    # Detect package manager
+    local pm=""
+    if command -v apt-get &> /dev/null; then
+        pm="apt"
+    elif command -v yum &> /dev/null; then
+        pm="yum"
+    elif command -v dnf &> /dev/null; then
+        pm="dnf"
+    else
+        error "Unsupported package manager"
+        echo "Please install dependencies manually:"
+        echo "  - Docker: https://docs.docker.com/engine/install/"
+        echo "  - jq: your package manager"
+        echo "  - gum: https://github.com/charmbracelet/gum#installation"
+        return 1
+    fi
+    
+    # Install jq
+    if [[ "$missing" =~ "jq" ]]; then
+        info "Installing jq…"
+        case "$pm" in
+            apt)
+                apt-get update -qq
+                apt-get install -y -qq jq
+                ;;
+            yum|dnf)
+                $pm install -y -q jq
+                ;;
+        esac
+        success "jq installed"
+    fi
+    
+    # Install gum
+    if [[ "$missing" =~ "gum" ]]; then
+        info "Installing gum…"
+        case "$pm" in
+            apt)
+                # Add Charm repository
+                mkdir -p /etc/apt/keyrings
+                curl -fsSL https://repo.charm.sh/apt/gpg.key | gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+                echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | tee /etc/apt/sources.list.d/charm.list > /dev/null
+                apt-get update -qq
+                apt-get install -y -qq gum
+                ;;
+            yum|dnf)
+                # Install from binary
+                local gum_version="v0.14.0"
+                local arch="amd64"
+                if [[ "$(uname -m)" == "aarch64" ]]; then
+                    arch="arm64"
+                fi
+                curl -fsSL "https://github.com/charmbracelet/gum/releases/download/${gum_version}/gum_${gum_version#v}_Linux_${arch}.tar.gz" -o /tmp/gum.tar.gz
+                tar -xzf /tmp/gum.tar.gz -C /tmp
+                mv /tmp/gum /usr/local/bin/
+                chmod +x /usr/local/bin/gum
+                rm -f /tmp/gum.tar.gz
+                ;;
+        esac
+        success "gum installed"
+    fi
+    
+    # Install Docker
+    if [[ "$missing" =~ "docker" ]]; then
+        info "Installing Docker…"
+        case "$pm" in
+            apt)
+                # Install prerequisites
+                apt-get update -qq
+                apt-get install -y -qq ca-certificates curl gnupg lsb-release
+                
+                # Add Docker's official GPG key
+                install -m 0755 -d /etc/apt/keyrings
+                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                chmod a+r /etc/apt/keyrings/docker.gpg
+                
+                # Detect distribution for Docker repo
+                . /etc/os-release
+                local distro="ubuntu"
+                if [ "$ID" = "debian" ]; then
+                    distro="debian"
+                fi
+                
+                # Add repository
+                echo \
+                  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${distro} \
+                  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+                
+                # Install Docker
+                apt-get update -qq
+                apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin
+                
+                # Start and enable Docker
+                systemctl start docker
+                systemctl enable docker
+                ;;
+            yum|dnf)
+                # Install Docker using convenience script
+                curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+                sh /tmp/get-docker.sh
+                rm -f /tmp/get-docker.sh
+                systemctl start docker
+                systemctl enable docker
+                ;;
+        esac
+        success "Docker installed"
+    fi
+    
+    success "All dependencies installed successfully"
+    return 0
 }
 
 # Main installation
@@ -219,14 +363,30 @@ main() {
             info "Installation cancelled"
             exit 0
         fi
-        info "Removing old installation..."
+        info "Removing old installation…"
         rm -rf "$INSTALL_DIR"
     fi
     
     # Install
     download_and_extract "$install_version"
     create_symlink
-    check_dependencies
+    
+    # Install dependencies unless --skip-deps was specified
+    echo ""
+    if [ "$SKIP_DEPS" = true ]; then
+        info "Skipping dependency installation (--skip-deps)"
+        local missing
+        missing=$(check_dependencies) || missing="$missing"
+        if [ -n "$missing" ]; then
+            warn "Missing dependencies: ${missing}"
+            echo "These can be installed later with: indie init"
+        fi
+    else
+        if ! install_dependencies; then
+            warn "Some dependencies failed to install"
+            echo "You can try installing them manually or run: indie init"
+        fi
+    fi
     
     echo ""
     echo "======================================"
@@ -245,9 +405,14 @@ main() {
     echo "  3. List projects:"
     echo "     indie list"
     echo ""
+    echo "Options:"
+    echo "  --skip-deps    Skip automatic dependency installation"
+    echo ""
     echo "To install a specific version:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash -s <version>"
-    echo "  Example: sudo bash -s v0.1.0-alpha"
+    echo "  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash -s v0.1.0-alpha"
+    echo ""
+    echo "To skip dependency installation:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | sudo bash -s latest --skip-deps"
     echo ""
     echo "Documentation: https://github.com/${REPO}"
     echo ""
