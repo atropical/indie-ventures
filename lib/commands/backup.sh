@@ -9,7 +9,7 @@ source "${LIB_DIR}/core/secrets.sh"
 cmd_backup() {
     require_init
 
-    local project_name="$1"
+    local project_name="${1:-}"
 
     if [ -z "${project_name}" ]; then
         error "Project name required"

@@ -9,7 +9,7 @@ source "${LIB_DIR}/ui/prompts.sh"
 cmd_domains() {
     require_init
 
-    local project_name="$1"
+    local project_name="${1:-}"
 
     if [ -z "${project_name}" ]; then
         error "Project name required"

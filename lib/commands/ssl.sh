@@ -75,7 +75,7 @@ EOF
 
 # Enable SSL for project
 ssl_enable() {
-    local project_name="$1"
+    local project_name="${1:-}"
 
     if [ -z "${project_name}" ]; then
         error "Project name required"
@@ -186,7 +186,7 @@ ssl_list() {
 
 # Show certificate status
 ssl_status() {
-    local project_name="$1"
+    local project_name="${1:-}"
 
     if [ -z "${project_name}" ]; then
         error "Project name required"
@@ -218,7 +218,7 @@ ssl_status() {
 
 # Remove SSL certificate
 ssl_remove() {
-    local project_name="$1"
+    local project_name="${1:-}"
 
     if [ -z "${project_name}" ]; then
         error "Project name required"
@@ -293,7 +293,7 @@ You can manually trigger renewal with:
 
 # Test SSL
 ssl_test() {
-    local domain="$1"
+    local domain="${1:-}"
 
     if [ -z "${domain}" ]; then
         error "Domain required"

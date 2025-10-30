@@ -54,8 +54,8 @@ get_latest_version() {
 
 # Compare versions (returns 0 if v1 < v2, 1 if v1 >= v2)
 version_lt() {
-    local v1="$1"
-    local v2="$2"
+    local v1="${1:-}"
+    local v2="${2:-}"
     
     # Remove 'v' prefix if present
     v1="${v1#v}"
@@ -75,7 +75,7 @@ version_lt() {
 
 # Update the installation
 perform_update() {
-    local version="$1"
+    local version="${1:-}"
     local download_url="https://github.com/${REPO}/archive/${version}.tar.gz"
     local temp_dir
     temp_dir=$(mktemp -d)
