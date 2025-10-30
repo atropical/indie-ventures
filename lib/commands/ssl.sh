@@ -92,8 +92,10 @@ ssl_enable() {
     show_header "Enable SSL for '${project_name}'"
 
     # Get domains
-    local domains
-    mapfile -t domains < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
+    local domains=()
+    while IFS= read -r domain; do
+        domains+=("${domain}")
+    done < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
 
     if [ ${#domains[@]} -eq 0 ]; then
         error "No domains configured for ${project_name}"
@@ -201,8 +203,10 @@ ssl_status() {
     show_header "SSL Status for '${project_name}'"
 
     # Get domains
-    local domains
-    mapfile -t domains < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
+    local domains=()
+    while IFS= read -r domain; do
+        domains+=("${domain}")
+    done < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
 
     for domain in "${domains[@]}"; do
         echo ""
@@ -231,8 +235,10 @@ ssl_remove() {
     show_header "Remove SSL for '${project_name}'"
 
     # Get domains
-    local domains
-    mapfile -t domains < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
+    local domains=()
+    while IFS= read -r domain; do
+        domains+=("${domain}")
+    done < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
 
     warning "This will remove SSL certificates for:"
     for domain in "${domains[@]}"; do

@@ -55,8 +55,10 @@ cmd_domains() {
             mv "${PROJECTS_FILE}.tmp" "${PROJECTS_FILE}"
 
             # Regenerate Nginx config
-            local domains
-            mapfile -t domains < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
+            local domains=()
+            while IFS= read -r domain; do
+                domains+=("${domain}")
+            done < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
 
             generate_project_nginx_config "${project_name}" "${domains[@]}"
             reload_nginx
@@ -65,8 +67,10 @@ cmd_domains() {
             ;;
 
         "Remove domain")
-            local domains_array
-            mapfile -t domains_array < <(echo "${current_domains}")
+            local domains_array=()
+            while IFS= read -r domain; do
+                domains_array+=("${domain}")
+            done < <(echo "${current_domains}")
 
             local domain_to_remove
             domain_to_remove=$(prompt_choice "Select domain to remove" "${domains_array[@]}")
@@ -80,8 +84,10 @@ cmd_domains() {
             mv "${PROJECTS_FILE}.tmp" "${PROJECTS_FILE}"
 
             # Regenerate Nginx config
-            local domains
-            mapfile -t domains < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
+            local domains=()
+            while IFS= read -r domain; do
+                domains+=("${domain}")
+            done < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
 
             generate_project_nginx_config "${project_name}" "${domains[@]}"
             reload_nginx

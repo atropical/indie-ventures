@@ -79,20 +79,23 @@ show_projects_table() {
 }
 
 # Show simple key-value table
+# Usage: show_kv_table "key1:value1" "key2:value2" ...
 show_kv_table() {
-    local -n data=$1
-
     if command_exists gum; then
         local table_data="Key,Value\n"
 
-        for key in "${!data[@]}"; do
-            table_data+="${key},${data[${key}]}\n"
+        for item in "$@"; do
+            local key="${item%%:*}"
+            local value="${item#*:}"
+            table_data+="${key},${value}\n"
         done
 
         echo -e "${table_data}" | gum table --border rounded --border-foreground 10
     else
-        for key in "${!data[@]}"; do
-            printf "%-30s: %s\n" "${key}" "${data[${key}]}"
+        for item in "$@"; do
+            local key="${item%%:*}"
+            local value="${item#*:}"
+            printf "%-30s: %s\n" "${key}" "${value}"
         done
     fi
 }

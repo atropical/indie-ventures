@@ -284,8 +284,10 @@ enable_ssl_for_project() {
     info "Enabling SSL for project: ${project_name}"
 
     # Get all domains for the project
-    local domains
-    mapfile -t domains < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
+    local domains=()
+    while IFS= read -r domain; do
+        domains+=("${domain}")
+    done < <(get_project_property "${project_name}" "domains" | jq -r '.[]')
 
     if [ ${#domains[@]} -eq 0 ]; then
         error "No domains configured for ${project_name}"

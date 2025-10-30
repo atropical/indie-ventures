@@ -9,8 +9,10 @@ cmd_list() {
     require_init
 
     # Get all projects
-    local projects
-    mapfile -t projects < <(list_projects)
+    local projects=()
+    while IFS= read -r project; do
+        projects+=("${project}")
+    done < <(list_projects)
 
     if [ ${#projects[@]} -eq 0 ]; then
         info "No projects found"
