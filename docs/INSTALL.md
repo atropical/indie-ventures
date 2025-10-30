@@ -75,20 +75,49 @@ The CLI will guide you through:
 - Base configuration (PostgreSQL, Dashboard passwords)
 - Service initialization
 
+### Updating
+
+To update Indie Ventures to the latest version:
+
+```bash
+sudo indie update
+```
+
+This will:
+- Check for the latest version on GitHub
+- Download and install the update
+- Preserve all your projects and data
+- Maintain your configuration
+
+**Note:** The update command is only for direct installations. If you used `--skip-deps` during installation, dependencies won't be updated.
+
 ### Uninstallation
 
-To remove Indie Ventures from your server:
+To remove Indie Ventures from your production server:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/uninstall.sh | sudo bash
 ```
 
-This will:
-- Remove the installation from `/opt/indie-ventures`
-- Remove the symlink from `/usr/local/bin/indie`
-- Remove configuration files (`/etc/indie-ventures.conf` or `~/.indie-ventures.conf`)
-- Ask if you want to remove project data
-- List what remains (Docker, dependencies, etc.)
+**What gets removed:**
+- Indie Ventures installation from `/opt/indie-ventures`
+- CLI symlink from `/usr/local/bin/indie`
+- Configuration files (`/etc/indie-ventures.conf` or `~/.indie-ventures.conf`)
+- Optionally: project data (you'll be prompted)
+
+**What gets preserved:**
+- Docker and Docker Compose
+- System dependencies (jq, gum)
+- Running containers (unless you choose to remove data)
+
+The uninstall script will prompt you before removing any project data, giving you a chance to back up first.
+
+**To remove everything including Docker:**
+```bash
+# After running uninstall.sh, remove Docker
+sudo apt-get remove docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo docker system prune -a --volumes  # Remove all containers and volumes
+```
 
 ---
 
@@ -145,6 +174,12 @@ indie init
 ```
 
 **Note:** On macOS, you'll need Docker Desktop installed and running.
+
+### Updating
+
+```bash
+brew upgrade indie-ventures
+```
 
 ### Uninstallation
 
@@ -250,7 +285,7 @@ sudo chown -R $(whoami) /usr/local/Homebrew
 | **Location** | `/opt/indie-ventures` | `/usr/local/Cellar` |
 | **Requires Root** | Yes | No |
 | **Security** | ✓ Recommended | ⚠️ Not for servers |
-| **Update Method** | Re-run install script | `brew upgrade` |
+| **Update Method** | `sudo indie update` | `brew upgrade` |
 | **Uninstall** | Run uninstall script | `brew uninstall` |
 
 ## Next Steps

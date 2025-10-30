@@ -5,22 +5,22 @@ Indie Ventures supports two architecture modes for running Supabase projects. Th
 ## Overview
 
 ```
-┌─────────────────────────────────────────────────┐
-│                                                 │
+┌────────────────────────────────────────────────┐
+│                                                │
 │  Server (Hetzner, DigitalOcean, AWS, etc.)     │
-│                                                 │
+│                                                │
 │  ┌───────────────────────────────────────────┐ │
-│  │         Indie Ventures Infrastructure     │ │
+│  │  Indie Ventures Infrastructure            │ │
 │  │                                           │ │
-│  │  ┌─────────┐  ┌──────┐  ┌──────────────┐│ │
-│  │  │ Nginx   │  │Postgres│ │  Shared or  ││ │
-│  │  │ Reverse │  │        │  │  Isolated   ││ │
-│  │  │ Proxy   │  │ (All   │  │  Supabase   ││ │
-│  │  │         │  │  DBs)  │  │  Services   ││ │
+│  │  ┌─────────┐  ┌────────┐  ┌──────────────┐│ │
+│  │  │ Nginx   │  │Postgres│  │  Shared or   ││ │
+│  │  │ Reverse │  │        │  │  Isolated    ││ │
+│  │  │ Proxy   │  │ (All   │  │  Supabase    ││ │
+│  │  │         │  │  DBs)  │  │  Services    ││ │
 │  │  └─────────┘  └────────┘  └──────────────┘│ │
 │  └───────────────────────────────────────────┘ │
-│                                                 │
-└─────────────────────────────────────────────────┘
+│                                                │
+└────────────────────────────────────────────────┘
 ```
 
 ## Shared Architecture
@@ -35,7 +35,7 @@ Indie Ventures supports two architecture modes for running Supabase projects. Th
 ### When to Use
 
 ✅ Good for:
-- Small to medium projects
+- Small projects
 - Development and testing
 - Projects with moderate traffic
 - Cost efficiency (fewer containers)

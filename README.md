@@ -59,6 +59,10 @@ indie init
 
 **Security Note:** The direct installation script is recommended for production servers to avoid installing Homebrew as root, which is a security risk. Homebrew is perfect for local development environments.
 
+**Updating:**
+- Production servers: `sudo indie update`
+- Homebrew: `brew upgrade indie-ventures`
+
 ### Add Your First Project
 
 ```bash
@@ -123,6 +127,7 @@ indie ssl renew         # Renew all certificates
 indie backup <name>     # Export project for migration
 indie remove <name>     # Remove project (with backup)
 indie status            # Check service health
+indie update            # Update CLI to latest version (Homebrew: use 'brew upgrade')
 ```
 
 ## Documentation
