@@ -32,11 +32,12 @@ prompt_password() {
     local prompt="$1"
 
     if command_exists gum; then
-        gum input --prompt "${prompt}: " --password
+        echo "${prompt}:" >&2
+        gum input --password --placeholder "Type your password"
     else
         # Fallback to read -s
         local result
-        read -rsp "${prompt}: " result
+        read -rsp "${prompt}: " result >&2
         echo "" >&2
         echo "${result}"
     fi
@@ -50,13 +51,16 @@ prompt_password_confirm() {
 
     while true; do
         password=$(prompt_password "$prompt")
-        password_confirm=$(prompt_password "$prompt (confirm)")
+        echo "" >&2  # Add spacing between prompts
+        password_confirm=$(prompt_password "Confirm password")
 
         if [ "$password" = "$password_confirm" ]; then
             echo "$password"
             return 0
         else
+            echo "" >&2
             error "Passwords do not match. Please try again."
+            echo "" >&2
         fi
     done
 }
