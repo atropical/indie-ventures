@@ -3,6 +3,8 @@
 # Show service status
 
 # Load dependencies
+source "${LIB_DIR}/core/utils.sh"
+source "${LIB_DIR}/ui/prompts.sh"
 source "${LIB_DIR}/core/docker.sh"
 
 cmd_status() {
