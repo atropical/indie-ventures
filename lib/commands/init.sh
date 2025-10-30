@@ -82,7 +82,6 @@ cmd_init() {
         postgres_password=$(grep "POSTGRES_PASSWORD" "${ENV_BASE}" | cut -d'=' -f2)
     else
         echo ""
-        info "Set PostgreSQL superuser password"
         postgres_password=$(prompt_password_confirm "PostgreSQL password (for superuser 'postgres')")
     fi
 
@@ -92,7 +91,6 @@ cmd_init() {
         dashboard_password=$(grep "DASHBOARD_PASSWORD" "${ENV_BASE}" | cut -d'=' -f2)
     else
         echo ""
-        info "Set Studio Dashboard password"
         dashboard_password=$(prompt_password_confirm "Studio Dashboard password")
     fi
 
