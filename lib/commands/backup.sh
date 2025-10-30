@@ -32,14 +32,14 @@ cmd_backup() {
     mkdir -p "${backup_dir}"
 
     # Dump database
-    info "Dumping database..."
+    info "Dumping database…"
     if ! dump_project_database "${project_name}" "${backup_dir}/database.sql"; then
         error "Failed to dump database"
         exit 1
     fi
 
     # Export secrets
-    info "Exporting secrets..."
+    info "Exporting secrets…"
     local jwt_secret
     jwt_secret=$(get_project_secret "${project_name}" "jwt_secret")
     local anon_key
@@ -54,13 +54,13 @@ SERVICE_ROLE_KEY=${service_role_key}
 EOF
 
     # Export project metadata
-    info "Exporting metadata..."
+    info "Exporting metadata…"
     jq --arg name "${project_name}" '.[$name]' "${PROJECTS_FILE}" > "${backup_dir}/project.json"
 
     # Copy storage files if they exist
     local storage_dir="${INDIE_DIR}/volumes/${project_name}/storage"
     if [ -d "${storage_dir}" ]; then
-        info "Copying storage files..."
+        info "Copying storage files…"
         cp -r "${storage_dir}" "${backup_dir}/storage"
     fi
 
@@ -100,7 +100,7 @@ For help: https://supabase.com/docs
 EOF
 
     # Create archive
-    info "Creating archive..."
+    info "Creating archive…"
     tar -czf "${backup_archive}" -C "${INDIE_DIR}/backups" "$(basename "${backup_dir}")"
     rm -rf "${backup_dir}"
 

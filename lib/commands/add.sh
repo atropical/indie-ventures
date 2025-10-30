@@ -72,7 +72,7 @@ cmd_add() {
     fi
 
     # Generate JWT secrets
-    info "Generating JWT secrets..."
+    info "Generating JWT secrets…"
     local secrets_json
     secrets_json=$(generate_project_keys "${project_name}")
 
@@ -148,7 +148,7 @@ cmd_add() {
     fi
 
     # Restart services
-    info "Starting services..."
+    info "Starting services…"
     if ! with_spinner "Restarting Docker services" "restart_services"; then
         error "Failed to restart services"
         exit 1

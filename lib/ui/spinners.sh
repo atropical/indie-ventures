@@ -13,7 +13,7 @@ run_with_spinner() {
         return $?
     else
         # Fallback: run command without spinner
-        info "${message}..."
+        info "${message}…"
         eval "${cmd}"
         return $?
     fi
@@ -35,7 +35,7 @@ run_with_progress() {
         wait ${pid}
         return $?
     else
-        info "${message}..."
+        info "${message}…"
         eval "${cmd}"
         return $?
     fi

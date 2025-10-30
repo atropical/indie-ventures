@@ -75,7 +75,7 @@ install_docker() {
     local pm
     pm=$(get_package_manager)
 
-    info "Installing Docker..."
+    info "Installing Docker…"
 
     case "${pm}" in
         apt)
@@ -126,7 +126,7 @@ install_gum() {
     local pm
     pm=$(get_package_manager)
 
-    info "Installing Gum..."
+    info "Installing Gum…"
 
     case "${pm}" in
         brew)
@@ -174,7 +174,7 @@ install_jq() {
     local pm
     pm=$(get_package_manager)
 
-    info "Installing jq..."
+    info "Installing jq…"
 
     case "${pm}" in
         apt)
@@ -235,7 +235,7 @@ check_dependencies() {
 install_missing_dependencies() {
     local auto_install="${1:-false}"
 
-    info "Checking dependencies..."
+    info "Checking dependencies…"
 
     local missing=()
 

@@ -51,7 +51,7 @@ check_installed() {
 
 # Remove installation
 remove_installation() {
-    info "Removing Indie Ventures installation..."
+    info "Removing Indie Ventures installation…"
 
     # Remove symlink
     if [ -L "$BIN_LINK" ]; then
@@ -87,7 +87,7 @@ ask_remove_data() {
         echo
         
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            info "Removing project data..."
+            info "Removing project data…"
             rm -rf "$DATA_DIR"
             success "Project data removed"
         else

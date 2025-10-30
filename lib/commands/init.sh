@@ -44,7 +44,7 @@ cmd_init() {
     echo ""
 
     # Check and install dependencies
-    info "Checking dependencies..."
+    info "Checking dependencies…"
     if ! install_missing_dependencies; then
         error "Failed to install dependencies"
         exit 1
@@ -52,7 +52,7 @@ cmd_init() {
     echo ""
 
     # Create directory structure
-    info "Creating directory structure..."
+    info "Creating directory structure…"
     mkdir -p "${INDIE_DIR}"/{projects,nginx/sites,volumes,backups}
 
     # Save config to standard location so other commands can find it
@@ -142,28 +142,28 @@ EOF
     fi
 
     # Initialize docker-compose.yml
-    info "Setting up Docker Compose..."
+    info "Setting up Docker Compose…"
     if ! init_docker_compose; then
         error "Failed to initialize Docker Compose"
         exit 1
     fi
 
     # Pull images
-    info "Pulling Docker images (this may take a few minutes)..."
+    info "Pulling Docker images (this may take a few minutes)…"
     if ! with_spinner "Pulling images" "cd ${INDIE_DIR} && $(get_compose_cmd) pull"; then
         error "Failed to pull Docker images"
         exit 1
     fi
 
     # Start base services
-    info "Starting base services..."
+    info "Starting base services…"
     if ! start_services; then
         error "Failed to start services"
         exit 1
     fi
 
     # Wait for PostgreSQL to be ready
-    info "Waiting for PostgreSQL to be ready..."
+    info "Waiting for PostgreSQL to be ready…"
     sleep 5
 
     # Summary

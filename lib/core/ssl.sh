@@ -45,8 +45,8 @@ obtain_certificate() {
         email=$(prompt_input "Email address" "" "admin@example.com")
     fi
 
-    info "Obtaining SSL certificate for ${domain}..."
-    info "This may take a minute..."
+    info "Obtaining SSL certificate for ${domain}…"
+    info "This may take a minute…"
 
     # Use webroot method (Nginx serves the challenge)
     if run_certbot certonly \
@@ -119,7 +119,7 @@ get_certificate_days_remaining() {
 
 # Renew all certificates
 renew_certificates() {
-    info "Checking for certificates to renew..."
+    info "Checking for certificates to renew…"
 
     if ! run_certbot renew --quiet; then
         error "Certificate renewal failed"
@@ -138,7 +138,7 @@ renew_certificates() {
 
 # Setup automatic renewal
 setup_auto_renewal() {
-    info "Setting up automatic certificate renewal..."
+    info "Setting up automatic certificate renewal…"
 
     # Create renewal script
     local renewal_script="${INDIE_DIR}/scripts/renew-certs.sh"
@@ -300,7 +300,7 @@ enable_ssl_for_project() {
     # Obtain certificates for all domains
     local success_count=0
     for domain in "${domains[@]}"; do
-        info "Processing ${domain}..."
+        info "Processing ${domain}…"
 
         if obtain_certificate "${domain}" "${email}"; then
             ((success_count++))
@@ -330,7 +330,7 @@ enable_ssl_for_project() {
 test_ssl() {
     local domain="$1"
 
-    info "Testing SSL configuration for ${domain}..."
+    info "Testing SSL configuration for ${domain}…"
 
     # Test with curl
     if curl -sSI "https://${domain}" >/dev/null 2>&1; then

@@ -81,7 +81,7 @@ reload_nginx() {
     local compose_cmd
     compose_cmd=$(get_compose_cmd)
 
-    info "Reloading Nginx..."
+    info "Reloading Nginx…"
 
     if ! in_indie_dir ${compose_cmd} exec nginx nginx -s reload; then
         error "Failed to reload Nginx"

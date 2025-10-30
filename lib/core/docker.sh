@@ -32,7 +32,7 @@ start_services() {
     local compose_cmd
     compose_cmd=$(get_compose_cmd)
 
-    info "Starting Docker services..."
+    info "Starting Docker services…"
 
     # Merge environment files for docker-compose
     if [ -f "${ENV_BASE}" ]; then
@@ -56,7 +56,7 @@ stop_services() {
     local compose_cmd
     compose_cmd=$(get_compose_cmd)
 
-    info "Stopping Docker services..."
+    info "Stopping Docker services…"
 
     if ! in_indie_dir ${compose_cmd} down; then
         error "Failed to stop services"
@@ -72,7 +72,7 @@ restart_services() {
     local compose_cmd
     compose_cmd=$(get_compose_cmd)
 
-    info "Restarting Docker services..."
+    info "Restarting Docker services…"
 
     # Merge environment files for docker-compose
     if [ -f "${ENV_BASE}" ]; then
@@ -104,7 +104,7 @@ pull_images() {
     local compose_cmd
     compose_cmd=$(get_compose_cmd)
 
-    info "Pulling latest images..."
+    info "Pulling latest images…"
 
     if ! in_indie_dir ${compose_cmd} pull; then
         error "Failed to pull images"

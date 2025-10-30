@@ -109,7 +109,7 @@ ssl_enable() {
     echo "  2. Domains are accessible via HTTP (port 80)"
     echo ""
 
-    info "Checking DNS configuration..."
+    info "Checking DNS configuration…"
     local dns_ok=true
     for domain in "${domains[@]}"; do
         if host "${domain}" >/dev/null 2>&1; then
@@ -163,7 +163,7 @@ Certificates will be automatically renewed by Certbot.
 ssl_renew() {
     show_header "Renew SSL Certificates"
 
-    info "Checking for certificates to renew..."
+    info "Checking for certificates to renew…"
     info "Certbot will only renew certificates with < 30 days remaining"
     echo ""
 

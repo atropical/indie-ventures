@@ -15,7 +15,7 @@ generate_supabase_jwt() {
 
     # Install jwt-cli if not available
     if ! command_exists jwt; then
-        warning "jwt-cli not found. Installing..."
+        warning "jwt-cli not found. Installing…"
         if command_exists cargo; then
             cargo install jwt-cli
         elif command_exists npm; then
@@ -59,7 +59,7 @@ generate_project_keys() {
     local project_name_upper
     project_name_upper=$(echo "${project_name}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-    info "Generating JWT secrets for ${project_name}..."
+    info "Generating JWT secrets for ${project_name}…"
 
     # Generate JWT secret
     local jwt_secret

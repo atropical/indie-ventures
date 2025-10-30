@@ -42,7 +42,7 @@ create_project_database() {
     fi
 
     # Initialize with Supabase schema
-    info "Initializing Supabase schema..."
+    info "Initializing Supabase schema…"
 
     # Enable required extensions
     pg_exec "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" "${dbname}" || true

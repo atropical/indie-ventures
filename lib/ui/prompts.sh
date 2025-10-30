@@ -112,7 +112,7 @@ with_spinner() {
         gum spin --spinner dot --title "${message}" -- bash -c "${cmd}"
     else
         # Run without spinner
-        echo "${message}..."
+        echo "${message}…"
         eval "${cmd}"
     fi
 }

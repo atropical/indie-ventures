@@ -40,21 +40,21 @@ cmd_remove() {
     fi
 
     # Create automatic backup
-    info "Creating automatic backup first..."
+    info "Creating automatic backup first…"
     source "${LIB_DIR}/commands/backup.sh"
     cmd_backup "${project_name}"
     echo ""
 
     # Remove database
-    info "Removing database..."
+    info "Removing database…"
     drop_project_database "${project_name}"
 
     # Remove secrets
-    info "Removing secrets..."
+    info "Removing secrets…"
     remove_project_secrets "${project_name}"
 
     # Remove from registry
-    info "Removing from registry..."
+    info "Removing from registry…"
     jq --arg name "${project_name}" 'del(.[$name])' "${PROJECTS_FILE}" > "${PROJECTS_FILE}.tmp"
     mv "${PROJECTS_FILE}.tmp" "${PROJECTS_FILE}"
 
@@ -63,23 +63,23 @@ cmd_remove() {
     arch=$(get_project_property "${project_name}" "architecture" 2>/dev/null || echo "shared")
 
     if [ "${arch}" = "isolated" ]; then
-        info "Removing Docker services..."
+        info "Removing Docker services…"
         remove_project_services "${project_name}"
     fi
 
     # Remove Nginx config
-    info "Removing Nginx configuration..."
+    info "Removing Nginx configuration…"
     remove_project_nginx_config "${project_name}"
 
     # Remove storage
     local storage_dir="${INDIE_DIR}/volumes/${project_name}"
     if [ -d "${storage_dir}" ]; then
-        info "Removing storage files..."
+        info "Removing storage files…"
         rm -rf "${storage_dir}"
     fi
 
     # Restart services
-    info "Restarting services..."
+    info "Restarting services…"
     restart_services
 
     if nginx_running; then

@@ -80,7 +80,7 @@ perform_update() {
     local temp_dir
     temp_dir=$(mktemp -d)
     
-    info "Downloading Indie Ventures ${version}..."
+    info "Downloading Indie Ventures ${version}…"
     
     if ! curl -fsSL "$download_url" -o "${temp_dir}/indie-ventures.tar.gz"; then
         error "Failed to download from ${download_url}"
@@ -88,7 +88,7 @@ perform_update() {
         return 1
     fi
     
-    info "Extracting update..."
+    info "Extracting update…"
     
     # Extract to temp directory
     tar -xzf "${temp_dir}/indie-ventures.tar.gz" -C "$temp_dir"
@@ -103,7 +103,7 @@ perform_update() {
         return 1
     fi
     
-    info "Installing update to ${INSTALL_DIR}..."
+    info "Installing update to ${INSTALL_DIR}…"
     
     # Backup current installation (just in case)
     if [ -d "${INSTALL_DIR}.backup" ]; then
@@ -162,7 +162,7 @@ cmd_update() {
     info "Current version: ${current_version}"
     
     # Fetch latest version
-    info "Checking for updates..."
+    info "Checking for updates…"
     local latest_version
     latest_version=$(get_latest_version)
     
