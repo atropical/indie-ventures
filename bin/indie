@@ -57,6 +57,7 @@ Commands:
   backup <name>     Export project for migration
   remove <name>     Remove project (with backup)
   status            Check service health
+  update            Update Indie Ventures CLI to latest version
   version           Show version
   help              Show this help
 
@@ -70,6 +71,7 @@ Examples:
   indie backup my-blog          # Export my-blog for migration
   indie remove my-blog          # Remove my-blog (creates backup first)
   indie status                  # Check if services are running
+  indie update                  # Update to latest version (use 'brew upgrade' for Homebrew)
 
 Documentation:
   https://github.com/atropical/indie-ventures/tree/main/docs
@@ -131,6 +133,11 @@ main() {
             # shellcheck source=../lib/commands/status.sh
             source "${LIB_DIR}/commands/status.sh"
             cmd_status "$@"
+            ;;
+        update|upgrade)
+            # shellcheck source=../lib/commands/update.sh
+            source "${LIB_DIR}/commands/update.sh"
+            cmd_update "$@"
             ;;
         version|-v|--version)
             show_version
