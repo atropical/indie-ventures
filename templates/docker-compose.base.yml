@@ -4,7 +4,7 @@
 services:
   # PostgreSQL - Shared database server
   postgres:
-    image: supabase/postgres
+    image: supabase/postgres:15.8.1.085
     container_name: indie-postgres
     restart: unless-stopped
     ports:
