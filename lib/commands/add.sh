@@ -7,6 +7,7 @@ source "${LIB_DIR}/core/database.sh"
 source "${LIB_DIR}/core/secrets.sh"
 source "${LIB_DIR}/core/docker.sh"
 source "${LIB_DIR}/core/nginx.sh"
+source "${LIB_DIR}/core/ssl.sh"
 source "${LIB_DIR}/ui/prompts.sh"
 source "${LIB_DIR}/ui/tables.sh"
 
