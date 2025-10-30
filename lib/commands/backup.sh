@@ -5,6 +5,7 @@
 # Load dependencies
 source "${LIB_DIR}/core/database.sh"
 source "${LIB_DIR}/core/secrets.sh"
+source "${LIB_DIR}/ui/prompts.sh"
 
 cmd_backup() {
     require_init

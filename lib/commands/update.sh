@@ -2,6 +2,9 @@
 
 # Update Indie Ventures CLI
 
+# Load dependencies
+source "${LIB_DIR}/ui/prompts.sh"
+
 REPO="atropical/indie-ventures"
 INSTALL_DIR="/opt/indie-ventures"
 
