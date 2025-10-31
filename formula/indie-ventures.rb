@@ -1,10 +1,10 @@
 class IndieVentures < Formula
   desc "Self-hosted Supabase manager for running multiple isolated projects"
   homepage "https://github.com/atropical/indie-ventures"
-  url "https://github.com/atropical/indie-ventures/archive/v0.1.4-alpha.tar.gz"
+  url "https://github.com/atropical/indie-ventures/archive/v0.1.5-alpha.tar.gz"
   sha256 "" # Will be generated on release
   license "OSL-3.0"
-  version "0.1.4-alpha"
+  version "0.1.5-alpha"
 
   head do
     url "https://github.com/atropical/indie-ventures.git", branch: "main"
@@ -33,7 +33,7 @@ class IndieVentures < Formula
   def caveats
     <<~EOS
       ╔═════════════════════════════════════════════════════════════╗
-      ║                 ⚠ LOCAL DEVELOPMENT ONLY                    ║
+      ║                  ⚠ LOCAL DEVELOPMENT ONLY ⚠                 ║
       ╠═════════════════════════════════════════════════════════════╣
       ║ This Homebrew installation is intended for local            ║
       ║ development and testing.                                    ║
@@ -42,7 +42,7 @@ class IndieVentures < Formula
       ║   curl -fsSL https://raw.githubusercontent.com/atropical/   ║
       ║   indie-ventures/main/install.sh | sudo bash                ║
       ║                                                             ║
-      ║ DO NOT install Homebrew as root on production servers.      ║
+      ║ ⍈ DO NOT install Homebrew as root on production servers.    ║
       ╚═════════════════════════════════════════════════════════════╝
 
       Indie Ventures has been installed!
