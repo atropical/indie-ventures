@@ -16,6 +16,20 @@ cmd_add() {
 
     show_header "Add New Supabase Project"
 
+    # Track if we started services (for cleanup on error)
+    local services_started_by_script=false
+
+    # Cleanup function to stop services if they were started by this script
+    cleanup_on_error() {
+        if [ "${services_started_by_script}" = "true" ]; then
+            info "Cleaning up: stopping Docker services…"
+            stop_services >/dev/null 2>&1 || true
+        fi
+    }
+
+    # Set trap to cleanup on error or exit
+    trap cleanup_on_error ERR EXIT
+
     # Ensure base services (postgres) are running
     local compose_cmd
     compose_cmd=$(get_docker_compose_cmd)
@@ -29,6 +43,7 @@ cmd_add() {
             error "Failed to start services. Please check Docker and try again."
             exit 1
         fi
+        services_started_by_script=true
         info "Waiting for PostgreSQL to be ready…"
         sleep 3
     fi
@@ -171,6 +186,10 @@ cmd_add() {
         error "Failed to restart services"
         exit 1
     fi
+
+    # Services are now running successfully, disable cleanup trap
+    services_started_by_script=false
+    trap - ERR EXIT
 
     # Reload Nginx
     sleep 2
