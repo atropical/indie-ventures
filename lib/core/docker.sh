@@ -14,7 +14,13 @@ init_docker_compose() {
 
     if [ -f "${target_file}" ]; then
         warning "docker-compose.yml already exists"
-        return 0
+        if ! confirm "Overwrite with fresh template?"; then
+            info "Keeping existing docker-compose.yml"
+            return 0
+        fi
+        # Backup old file
+        mv "${target_file}" "${target_file}.bak.$(date +%Y%m%d_%H%M%S)"
+        info "Old file backed up"
     fi
 
     if ! [ -f "${template_file}" ]; then
