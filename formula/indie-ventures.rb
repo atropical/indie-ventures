@@ -1,10 +1,10 @@
 class IndieVentures < Formula
   desc "Self-hosted Supabase manager for running multiple isolated projects"
   homepage "https://github.com/atropical/indie-ventures"
-  url "https://github.com/atropical/indie-ventures/archive/v0.1.5-alpha.tar.gz"
+  url "https://github.com/atropical/indie-ventures/archive/v0.1.6-alpha.tar.gz"
   sha256 "" # Will be generated on release
   license "OSL-3.0"
-  version "0.1.5-alpha"
+  version "0.1.6-alpha"
 
   head do
     url "https://github.com/atropical/indie-ventures.git", branch: "main"
@@ -32,18 +32,21 @@ class IndieVentures < Formula
 
   def caveats
     <<~EOS
-      ╔═════════════════════════════════════════════════════════════╗
-      ║                  ⚠ LOCAL DEVELOPMENT ONLY ⚠                 ║
-      ╠═════════════════════════════════════════════════════════════╣
-      ║ This Homebrew installation is intended for local            ║
-      ║ development and testing.                                    ║
-      ║                                                             ║
-      ║ For production servers, use the direct installation method: ║
-      ║   curl -fsSL https://raw.githubusercontent.com/atropical/   ║
-      ║   indie-ventures/main/install.sh | sudo bash                ║
-      ║                                                             ║
-      ║ ⍈ DO NOT install Homebrew as root on production servers.    ║
-      ╚═════════════════════════════════════════════════════════════╝
+      ╔═════════════════════════════════════════════════════════════════════════════════════════════════════╗
+      ║  LOCAL DEVELOPMENT ONLY ⚠                                                                           ║
+      ╠═════════════════════════════════════════════════════════════════════════════════════════════════════╣
+      ║   This Homebrew installation is intended for local development and testing.                         ║
+      ║                                                                                                     ║
+      ║ ☞ WARNING:                                                                                          ║
+      ║   DO NOT attempt to install Homebrew as root on production servers.                                 ║
+      ║   Use the direct installation method instead:                                                       ║
+      ║   curl -fsSL https://raw.githubusercontent.com/atropical/indie-ventures/main/install.sh | sudo bash ║
+      ║                                                                                                     ║
+      ║   This will ensure your system is properly prepared for Indie Ventures.                             ║
+      ║                                                                                                     ║
+      ║   For more information, see the documentation:                                                      ║
+      ║   https://github.com/atropical/indie-ventures/docs/INSTALL.md                                       ║
+      ╚═════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
       Indie Ventures has been installed!
 
@@ -52,14 +55,10 @@ class IndieVentures < Formula
         2. Add project: indie add
         3. List projects: indie list
 
+      Any dependencies should be automatically installed via Homebrew.
       Documentation: https://github.com/atropical/indie-ventures
+      Report issues: https://github.com/atropical/indie-ventures/issues
 
-      Dependencies:
-        - Docker (required for running services)
-        - Gum (for beautiful CLI prompts)
-        - jq (for JSON processing)
-
-      All dependencies should be automatically installed via Homebrew.
     EOS
   end
 
