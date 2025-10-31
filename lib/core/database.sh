@@ -2,6 +2,35 @@
 
 # Database operations for Indie Ventures
 
+# Wait for PostgreSQL to be ready
+wait_for_postgres() {
+    local max_attempts=30
+    local attempt=1
+    local compose_cmd
+    compose_cmd=$(get_docker_compose_cmd)
+
+    # First check if container exists and is running
+    local container_status
+    container_status=$(in_indie_dir ${compose_cmd} ps postgres --format json 2>/dev/null | jq -r '.[0].State' 2>/dev/null || echo "missing")
+
+    if [ "${container_status}" != "running" ]; then
+        error "PostgreSQL container is not running (status: ${container_status})"
+        error "Please ensure services are started with: indie status"
+        return 1
+    fi
+
+    while [ ${attempt} -le ${max_attempts} ]; do
+        if in_indie_dir ${compose_cmd} exec -T postgres pg_isready -U postgres >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+
+    error "PostgreSQL is not ready after ${max_attempts} seconds"
+    return 1
+}
+
 # Execute SQL in PostgreSQL container
 pg_exec() {
     local sql="$1"
@@ -10,7 +39,31 @@ pg_exec() {
     local compose_cmd
     compose_cmd=$(get_docker_compose_cmd)
 
-    in_indie_dir ${compose_cmd} exec -T postgres psql -U postgres -d "${dbname}" -c "${sql}"
+    # Wait for postgres to be ready
+    if ! wait_for_postgres; then
+        return 1
+    fi
+
+    # Execute and capture both stdout and stderr
+    local output
+    local exit_code
+
+    output=$(in_indie_dir ${compose_cmd} exec -T postgres psql -U postgres -d "${dbname}" -c "${sql}" 2>&1)
+    exit_code=$?
+
+    if [ ${exit_code} -ne 0 ]; then
+        echo "${output}" >&2
+        return ${exit_code}
+    fi
+
+    # Check for PostgreSQL errors in output
+    if echo "${output}" | grep -qi "error\|fatal"; then
+        echo "${output}" >&2
+        return 1
+    fi
+
+    echo "${output}"
+    return 0
 }
 
 # Check if database exists
@@ -18,7 +71,7 @@ database_exists() {
     local dbname="$1"
 
     local result
-    result=$(pg_exec "SELECT 1 FROM pg_database WHERE datname='${dbname}'" "postgres" 2>/dev/null | grep -c "(1 row)")
+    result=$(pg_exec "SELECT 1 FROM pg_database WHERE datname='${dbname}'" "postgres" 2>/dev/null | grep -c "(1 row)" || echo "0")
 
     [ "${result}" -eq 1 ]
 }

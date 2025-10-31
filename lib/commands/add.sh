@@ -16,6 +16,23 @@ cmd_add() {
 
     show_header "Add New Supabase Project"
 
+    # Ensure base services (postgres) are running
+    local compose_cmd
+    compose_cmd=$(get_docker_compose_cmd)
+    
+    local postgres_status
+    postgres_status=$(in_indie_dir ${compose_cmd} ps postgres --format json 2>/dev/null | jq -r '.[0].State' 2>/dev/null || echo "missing")
+    
+    if [ "${postgres_status}" != "running" ]; then
+        info "Starting base services…"
+        if ! start_services; then
+            error "Failed to start services. Please check Docker and try again."
+            exit 1
+        fi
+        info "Waiting for PostgreSQL to be ready…"
+        sleep 3
+    fi
+
     # Prompt for project name
     local project_name
     while true; do
