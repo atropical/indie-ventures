@@ -59,8 +59,6 @@ generate_project_keys() {
     local project_name_upper
     project_name_upper=$(echo "${project_name}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
-    info "Generating JWT secrets for ${project_name}…"
-
     # Generate JWT secret
     local jwt_secret
     jwt_secret=$(generate_jwt_secret)
