@@ -6,6 +6,7 @@
 source "${LIB_DIR}/core/deps.sh"
 source "${LIB_DIR}/core/docker.sh"
 source "${LIB_DIR}/ui/prompts.sh"
+source "${LIB_DIR}/core/server.sh"
 
 cmd_init() {
     show_header "Indie Ventures Initialization"
@@ -42,6 +43,12 @@ cmd_init() {
     # Show system info
     show_system_info
     echo ""
+
+    # Offer server preparation on Linux servers
+    if is_production_server; then
+        prepare_server
+        echo ""
+    fi
 
     # Check and install dependencies
     info "Checking dependencies…"

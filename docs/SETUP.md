@@ -19,6 +19,8 @@ brew install indie-ventures
 
 # 4. Initialize
 indie init
+# On Linux servers, you'll be offered to run basic server setup
+# (system update, firewall, non-root user)
 ```
 
 ## Detailed Setup
@@ -43,6 +45,8 @@ sudo ufw allow 443/tcp   # HTTPS
 sudo ufw enable
 ```
 
+**Note:** `indie init` can automatically configure the firewall for you. See step 3 below.
+
 #### 1.3 Create Non-Root User (Recommended)
 
 ```bash
@@ -50,6 +54,8 @@ adduser indie
 usermod -aG sudo indie
 su - indie
 ```
+
+**Note:** `indie init` can automatically create a non-root user for you. See step 3 below.
 
 ### 2. Install Indie Ventures
 
@@ -62,6 +68,13 @@ indie init
 ```
 
 You'll be prompted for:
+
+**Server Preparation (Linux servers only):**
+- On Linux servers, `indie init` can optionally help you prepare your server:
+  - Update system packages
+  - Configure firewall (UFW) - allow SSH, HTTP, HTTPS
+  - Create a non-root user with sudo privileges
+- This step is skipped on macOS (Homebrew installations are for local development)
 
 **Data Directory:**
 - Where to store Indie Ventures data and projects
