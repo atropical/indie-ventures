@@ -53,6 +53,18 @@ error() {
     echo -e "${RED}✗${NC} $*" >&2
 }
 
+# Verbose logging (only outputs when VERBOSE is set)
+verbose_log() {
+    if [ -n "${VERBOSE:-}" ]; then
+        echo -e "${CYAN}→${NC} $*" >&2
+    fi
+}
+
+# Alias for convenience
+debug() {
+    verbose_log "$@"
+}
+
 # Check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1

@@ -112,6 +112,14 @@ with_spinner() {
     shift
     local cmd="$@"
 
+    # If verbose mode, show command and output directly
+    if [ -n "${VERBOSE:-}" ]; then
+        echo -e "${CYAN}→${NC} ${message}…"
+        eval "${cmd}"
+        return $?
+    fi
+
+    # Normal mode: use spinner if available
     if command_exists gum; then
         gum spin --spinner dot --title "${message}" -- bash -c "${cmd}"
     else

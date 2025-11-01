@@ -39,20 +39,27 @@ start_services() {
     compose_cmd=$(get_compose_cmd)
 
     info "Starting Docker services…"
+    verbose_log "Using compose command: ${compose_cmd}"
 
     # Merge environment files for docker-compose
+    verbose_log "Merging environment files…"
     if [ -f "${ENV_BASE}" ]; then
         cat "${ENV_BASE}" > "${INDIE_DIR}/.env" 2>/dev/null || true
+        verbose_log "Loaded base environment from ${ENV_BASE}"
         if [ -f "${ENV_PROJECTS}" ]; then
             cat "${ENV_PROJECTS}" >> "${INDIE_DIR}/.env" 2>/dev/null || true
+            verbose_log "Loaded project environment from ${ENV_PROJECTS}"
         fi
     fi
 
+    verbose_log "Starting Docker Compose services in detached mode…"
     if ! in_indie_dir ${compose_cmd} up -d; then
         error "Failed to start services"
+        error "Check Docker logs with: ${compose_cmd} logs"
         return 1
     fi
 
+    verbose_log "Docker services started successfully"
     success "Services started"
     return 0
 }

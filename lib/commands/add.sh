@@ -106,6 +106,7 @@ cmd_add() {
 
     # Generate JWT secrets
     info "Generating JWT secrets…"
+    verbose_log "Generating secure keys for project: ${project_name}"
     local secrets_json
     secrets_json=$(generate_project_keys "${project_name}")
 
@@ -122,6 +123,7 @@ cmd_add() {
     save_project_secrets "${project_name}" "${jwt_secret}" "${anon_key}" "${service_role_key}"
 
     # Create database
+    verbose_log "Starting database creation process for: ${project_name}"
     if ! with_spinner "Creating database" "create_project_database '${project_name}'"; then
         error "Failed to create database"
         exit 1

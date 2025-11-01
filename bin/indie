@@ -46,7 +46,10 @@ show_help() {
 Indie Ventures - Self-hosted Supabase Manager
 
 Usage:
-  indie <command> [options]
+  indie [--verbose|-v] <command> [options]
+
+Options:
+  --verbose, -v     Show detailed execution information
 
 Commands:
   init              Initialize server (first time setup)
@@ -64,6 +67,7 @@ Commands:
 Examples:
   indie init                    # Initialize server
   indie add                     # Add new project (interactive)
+  indie --verbose add           # Add project with detailed output
   indie list                    # List all projects
   indie domains my-blog         # Manage domains for my-blog
   indie ssl enable my-blog      # Enable SSL for my-blog
@@ -82,6 +86,40 @@ Report issues:
 EOF
 }
 
+# Parse verbose flag and remove from arguments
+parse_verbose_flag() {
+    local args=()
+    
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --verbose)
+                VERBOSE="1"
+                export VERBOSE
+                shift
+                ;;
+            -v)
+                # Only treat -v as verbose if not the first argument
+                # (first arg -v is version command)
+                if [ ${#args[@]} -gt 0 ] || [ $# -gt 1 ]; then
+                    VERBOSE="1"
+                    export VERBOSE
+                    shift
+                else
+                    args+=("$1")
+                    shift
+                fi
+                ;;
+            *)
+                args+=("$1")
+                shift
+                ;;
+        esac
+    done
+    
+    # Return remaining arguments
+    printf '%s\n' "${args[@]}"
+}
+
 # Main command router
 main() {
     # Check if command is provided
@@ -90,8 +128,35 @@ main() {
         exit 0
     fi
 
-    local command="$1"
-    shift
+    # Initialize VERBOSE
+    VERBOSE="${VERBOSE:-}"
+    export VERBOSE
+
+    # Parse verbose flag from all arguments
+    local all_args
+    all_args=$(parse_verbose_flag "$@")
+    
+    # Convert newline-separated to array
+    local remaining_args=()
+    while IFS= read -r line; do
+        [ -n "$line" ] && remaining_args+=("$line")
+    done <<< "$all_args"
+
+    # Check if we have a command after parsing
+    if [ ${#remaining_args[@]} -eq 0 ]; then
+        error "No command provided"
+        echo ""
+        show_help
+        exit 1
+    fi
+
+    local command="${remaining_args[0]}"
+    
+    if [ ${#remaining_args[@]} -gt 1 ]; then
+        set -- "${remaining_args[@]:1}"
+    else
+        set --
+    fi
 
     case "${command}" in
         init)

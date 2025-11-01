@@ -9,9 +9,13 @@ wait_for_postgres() {
     local compose_cmd
     compose_cmd=$(get_docker_compose_cmd)
 
+    verbose_log "Checking PostgreSQL container status…"
+
     # First check if container exists and is running
     local container_status
     container_status=$(in_indie_dir ${compose_cmd} ps postgres --format json 2>/dev/null | jq -r '.[0].State' 2>/dev/null || echo "missing")
+
+    verbose_log "PostgreSQL container status: ${container_status}"
 
     if [ "${container_status}" != "running" ]; then
         error "PostgreSQL container is not running (status: ${container_status})"
@@ -19,15 +23,19 @@ wait_for_postgres() {
         return 1
     fi
 
+    verbose_log "Waiting for PostgreSQL to be ready (max ${max_attempts} seconds)…"
     while [ ${attempt} -le ${max_attempts} ]; do
         if in_indie_dir ${compose_cmd} exec -T postgres pg_isready -U postgres >/dev/null 2>&1; then
+            verbose_log "PostgreSQL is ready (attempt ${attempt}/${max_attempts})"
             return 0
         fi
+        [ -n "${VERBOSE:-}" ] && verbose_log "Waiting… (attempt ${attempt}/${max_attempts})"
         sleep 1
         attempt=$((attempt + 1))
     done
 
     error "PostgreSQL is not ready after ${max_attempts} seconds"
+    error "Container may be starting up or there may be a configuration issue"
     return 1
 }
 
@@ -36,11 +44,14 @@ pg_exec() {
     local sql="$1"
     local dbname="${2:-postgres}"
 
+    verbose_log "Executing SQL on database '${dbname}': ${sql:0:60}$([ ${#sql} -gt 60 ] && echo "...")"
+
     local compose_cmd
     compose_cmd=$(get_docker_compose_cmd)
 
     # Wait for postgres to be ready
     if ! wait_for_postgres; then
+        error "Cannot execute SQL: PostgreSQL is not ready"
         return 1
     fi
 
@@ -52,16 +63,22 @@ pg_exec() {
     exit_code=$?
 
     if [ ${exit_code} -ne 0 ]; then
+        error "SQL execution failed (exit code: ${exit_code})"
+        error "Database: ${dbname}"
+        error "Command: ${sql:0:100}$([ ${#sql} -gt 100 ] && echo "...")"
         echo "${output}" >&2
         return ${exit_code}
     fi
 
     # Check for PostgreSQL errors in output
     if echo "${output}" | grep -qi "error\|fatal"; then
+        error "PostgreSQL reported an error in SQL execution"
+        error "Database: ${dbname}"
         echo "${output}" >&2
         return 1
     fi
 
+    verbose_log "SQL executed successfully"
     echo "${output}"
     return 0
 }
@@ -82,8 +99,11 @@ create_project_database() {
     local dbname
     dbname=$(slugify "${project_name}")
 
+    verbose_log "Creating database for project: ${project_name} (database name: ${dbname})"
+
     if database_exists "${dbname}"; then
         warning "Database ${dbname} already exists"
+        verbose_log "Database ${dbname} exists, skipping creation"
         return 0
     fi
 
@@ -91,17 +111,31 @@ create_project_database() {
 
     if ! pg_exec "CREATE DATABASE ${dbname};" "postgres"; then
         error "Failed to create database ${dbname}"
+        error "Project: ${project_name}"
+        error "Try running with --verbose for more details"
         return 1
     fi
+
+    verbose_log "Database ${dbname} created successfully"
 
     # Initialize with Supabase schema
     info "Initializing Supabase schema…"
 
     # Enable required extensions
-    pg_exec "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" "${dbname}" || true
-    pg_exec "CREATE EXTENSION IF NOT EXISTS pgcrypto;" "${dbname}" || true
-    pg_exec "CREATE EXTENSION IF NOT EXISTS pgjwt;" "${dbname}" || true
+    verbose_log "Enabling required extensions…"
+    if ! pg_exec "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;" "${dbname}" 2>/dev/null; then
+        verbose_log "Warning: Failed to create pg_stat_statements extension (may already exist)"
+    fi
+    
+    if ! pg_exec "CREATE EXTENSION IF NOT EXISTS pgcrypto;" "${dbname}" 2>/dev/null; then
+        verbose_log "Warning: Failed to create pgcrypto extension (may already exist)"
+    fi
+    
+    if ! pg_exec "CREATE EXTENSION IF NOT EXISTS pgjwt;" "${dbname}" 2>/dev/null; then
+        verbose_log "Warning: Failed to create pgjwt extension (may already exist)"
+    fi
 
+    verbose_log "Extensions enabled successfully"
     success "Database ${dbname} created"
     return 0
 }
