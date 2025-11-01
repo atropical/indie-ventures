@@ -88,38 +88,39 @@ Report issues:
 EOF
 }
 
+# Global array to store remaining arguments after parsing verbose flag
+_PARSED_ARGS=()
+
 # Parse verbose flag and remove from arguments
+# Sets VERBOSE environment variable if --verbose or -v is found
+# Stores remaining args in global _PARSED_ARGS array
 parse_verbose_flag() {
-    local args=()
+    _PARSED_ARGS=()
+    VERBOSE="${VERBOSE:-}"
     
     while [ $# -gt 0 ]; do
         case "$1" in
             --verbose)
                 VERBOSE="1"
-                export VERBOSE
                 shift
                 ;;
             -v)
                 # Only treat -v as verbose if not the first argument
                 # (first arg -v is version command)
-                if [ ${#args[@]} -gt 0 ] || [ $# -gt 1 ]; then
+                if [ ${#_PARSED_ARGS[@]} -gt 0 ] || [ $# -gt 1 ]; then
                     VERBOSE="1"
-                    export VERBOSE
                     shift
                 else
-                    args+=("$1")
+                    _PARSED_ARGS+=("$1")
                     shift
                 fi
                 ;;
             *)
-                args+=("$1")
+                _PARSED_ARGS+=("$1")
                 shift
                 ;;
         esac
     done
-    
-    # Return remaining arguments
-    printf '%s\n' "${args[@]}"
 }
 
 # Main command router
@@ -130,19 +131,14 @@ main() {
         exit 0
     fi
 
-    # Initialize VERBOSE
-    VERBOSE="${VERBOSE:-}"
-    export VERBOSE
-
     # Parse verbose flag from all arguments
-    local all_args
-    all_args=$(parse_verbose_flag "$@")
+    parse_verbose_flag "$@"
     
-    # Convert newline-separated to array
-    local remaining_args=()
-    while IFS= read -r line; do
-        [ -n "$line" ] && remaining_args+=("$line")
-    done <<< "$all_args"
+    # Export VERBOSE so it's available to sourced scripts
+    export VERBOSE
+    
+    # Use the parsed arguments from global array
+    local remaining_args=("${_PARSED_ARGS[@]}")
 
     # Check if we have a command after parsing
     if [ ${#remaining_args[@]} -eq 0 ]; then
