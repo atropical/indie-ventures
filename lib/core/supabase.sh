@@ -77,34 +77,79 @@ init_supabase_volumes() {
     # Copy volumes structure (but not data)
     mkdir -p "${target_dir}"
 
-    # Copy database init scripts
+    local copy_failed=false
+
+    # Copy database init scripts (required for Postgres initialization)
     if [ -d "${source_dir}/db" ]; then
         mkdir -p "${target_dir}/db"
-        cp -r "${source_dir}/db"/* "${target_dir}/db/" 2>/dev/null || true
+        if ! cp -r "${source_dir}/db"/* "${target_dir}/db/" 2>/dev/null; then
+            error "Failed to copy database migration files"
+            copy_failed=true
+        else
+            verbose_log "Copied database migration files"
+        fi
+    else
+        error "Database migration directory not found: ${source_dir}/db"
+        copy_failed=true
     fi
 
-    # Copy Kong config
+    # Copy Kong config (required for API gateway)
     if [ -d "${source_dir}/api" ]; then
         mkdir -p "${target_dir}/api"
-        cp -r "${source_dir}/api"/* "${target_dir}/api/" 2>/dev/null || true
+        if ! cp -r "${source_dir}/api"/* "${target_dir}/api/" 2>/dev/null; then
+            error "Failed to copy Kong configuration"
+            copy_failed=true
+        else
+            verbose_log "Copied Kong configuration"
+        fi
+    else
+        warning "Kong config directory not found: ${source_dir}/api"
     fi
 
-    # Copy pooler config
+    # Copy pooler config (required for Supavisor)
     if [ -d "${source_dir}/pooler" ]; then
         mkdir -p "${target_dir}/pooler"
-        cp -r "${source_dir}/pooler"/* "${target_dir}/pooler/" 2>/dev/null || true
+        if ! cp -r "${source_dir}/pooler"/* "${target_dir}/pooler/" 2>/dev/null; then
+            error "Failed to copy pooler configuration"
+            copy_failed=true
+        else
+            verbose_log "Copied pooler configuration"
+        fi
+    else
+        warning "Pooler config directory not found: ${source_dir}/pooler"
     fi
 
     # Copy logs config
     if [ -d "${source_dir}/logs" ]; then
         mkdir -p "${target_dir}/logs"
-        cp -r "${source_dir}/logs"/* "${target_dir}/logs/" 2>/dev/null || true
+        if ! cp -r "${source_dir}/logs"/* "${target_dir}/logs/" 2>/dev/null; then
+            warning "Failed to copy logs configuration (optional)"
+        else
+            verbose_log "Copied logs configuration"
+        fi
     fi
 
     # Copy functions template
     if [ -d "${source_dir}/functions" ]; then
         mkdir -p "${target_dir}/functions"
-        cp -r "${source_dir}/functions"/* "${target_dir}/functions/" 2>/dev/null || true
+        if ! cp -r "${source_dir}/functions"/* "${target_dir}/functions/" 2>/dev/null; then
+            warning "Failed to copy functions template (optional)"
+        else
+            verbose_log "Copied functions template"
+        fi
+    fi
+
+    # Verify critical files were copied
+    if [ "${copy_failed}" = "true" ]; then
+        error "Failed to copy required Supabase volume files"
+        return 1
+    fi
+
+    # Verify database files exist (most critical)
+    if ! [ -f "${target_dir}/db/realtime.sql" ] || ! [ -f "${target_dir}/db/roles.sql" ]; then
+        error "Critical database migration files missing after copy"
+        error "Expected files in: ${target_dir}/db/"
+        return 1
     fi
 
     verbose_log "Initialized Supabase volumes structure"
