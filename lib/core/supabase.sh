@@ -87,7 +87,7 @@ fetch_supabase_setup() {
 
     # Copy docker directory to target
     # target_dir is ${INDIE_DIR}/supabase-official, so we copy docker/ into it
-    mkdir -p "$(dirname "${target_dir}")"
+    mkdir -p "${target_dir}"
     verbose_log "Copying from ${temp_dir}/docker to ${target_dir}/docker"
     
     # Remove target docker directory if it exists to ensure clean copy
