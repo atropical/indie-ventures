@@ -50,12 +50,12 @@ fetch_supabase_setup() {
 
 # Get path to Supabase official docker-compose.yml
 get_supabase_compose_path() {
-    echo "${INDIE_DIR}/supabase-official/docker-compose.yml"
+    echo "${INDIE_DIR}/supabase-official/docker/docker-compose.yml"
 }
 
 # Get path to Supabase official .env.example
 get_supabase_env_example_path() {
-    echo "${INDIE_DIR}/supabase-official/.env.example"
+    echo "${INDIE_DIR}/supabase-official/docker/.env.example"
 }
 
 # Check if Supabase setup is available
@@ -65,7 +65,8 @@ supabase_setup_available() {
 
 # Initialize Supabase volumes directory structure from official setup
 init_supabase_volumes() {
-    local source_dir="${INDIE_DIR}/supabase-official/volumes"
+    # fetch_supabase_setup copies docker/ to supabase-official/, so volumes are at docker/volumes
+    local source_dir="${INDIE_DIR}/supabase-official/docker/volumes"
     local target_dir="${INDIE_DIR}/volumes/supabase"
 
     if ! [ -d "${source_dir}" ]; then
