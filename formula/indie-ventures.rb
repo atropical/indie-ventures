@@ -1,10 +1,10 @@
 class IndieVentures < Formula
   desc "Self-hosted Supabase manager for running multiple isolated projects"
   homepage "https://github.com/atropical/indie-ventures"
-  url "https://github.com/atropical/indie-ventures/archive/v0.1.7-alpha.tar.gz"
+  url "https://github.com/atropical/indie-ventures/archive/v0.1.8-alpha.tar.gz"
   sha256 "" # Will be generated on release
   license "OSL-3.0"
-  version "0.1.7-alpha"
+  version "0.1.8-alpha"
 
   head do
     url "https://github.com/atropical/indie-ventures.git", branch: "main"
