@@ -123,11 +123,20 @@ cmd_add() {
     anon_key=$(echo "${secrets_json}" | jq -r '.anon_key')
     local service_role_key
     service_role_key=$(echo "${secrets_json}" | jq -r '.service_role_key')
+    local secret_key_base
+    secret_key_base=$(echo "${secrets_json}" | jq -r '.secret_key_base')
+    local pg_meta_crypto_key
+    pg_meta_crypto_key=$(echo "${secrets_json}" | jq -r '.pg_meta_crypto_key')
+    local vault_enc_key
+    vault_enc_key=$(echo "${secrets_json}" | jq -r '.vault_enc_key')
+    local pooler_tenant_id
+    pooler_tenant_id=$(echo "${secrets_json}" | jq -r '.pooler_tenant_id')
 
     success "Generated secrets"
 
     # Save secrets
-    save_project_secrets "${project_name}" "${jwt_secret}" "${anon_key}" "${service_role_key}"
+    save_project_secrets "${project_name}" "${jwt_secret}" "${anon_key}" "${service_role_key}" \
+        "${secret_key_base}" "${pg_meta_crypto_key}" "${vault_enc_key}" "${pooler_tenant_id}"
 
     # Create database
     verbose_log "Starting database creation process for: ${project_name}"

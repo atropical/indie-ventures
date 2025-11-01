@@ -2,6 +2,15 @@
 
 # Docker Compose management for Indie Ventures
 
+# Source utils for slugify function if not already loaded
+if ! command -v slugify >/dev/null 2>&1; then
+    # Try to source utils if LIB_DIR is set
+    if [ -n "${LIB_DIR:-}" ] && [ -f "${LIB_DIR}/core/utils.sh" ]; then
+        # shellcheck source=/dev/null
+        source "${LIB_DIR}/core/utils.sh"
+    fi
+fi
+
 # Get the docker-compose command (handles both old and new syntax)
 get_compose_cmd() {
     get_docker_compose_cmd
@@ -171,11 +180,18 @@ add_isolated_project() {
     fi
 
     # Generate project-specific compose fragment
-    # Replace placeholders: {{PROJECT_NAME}}, {{PORTS_OFFSET}}
+    # Replace placeholders: {{PROJECT_NAME}}, {{PROJECT_DB_NAME}}, {{PROJECT_NAME_UPPER}}, {{PORTS_OFFSET}}
     local temp_file
     temp_file=$(mktemp)
+    
+    local project_db_name
+    project_db_name=$(slugify "${project_name}")
+    local project_name_upper
+    project_name_upper=$(echo "${project_name}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
     sed -e "s/{{PROJECT_NAME}}/${project_name}/g" \
+        -e "s/{{PROJECT_DB_NAME}}/${project_db_name}/g" \
+        -e "s/{{PROJECT_NAME_UPPER}}/${project_name_upper}/g" \
         -e "s/{{PORTS_OFFSET}}/${ports_offset}/g" \
         "${template_file}" > "${temp_file}"
 

@@ -5,6 +5,8 @@
 # Load dependencies
 source "${LIB_DIR}/core/deps.sh"
 source "${LIB_DIR}/core/docker.sh"
+source "${LIB_DIR}/core/secrets.sh"
+source "${LIB_DIR}/core/supabase.sh"
 source "${LIB_DIR}/ui/prompts.sh"
 source "${LIB_DIR}/core/server.sh"
 
@@ -92,6 +94,13 @@ cmd_init() {
         postgres_password=$(prompt_password_confirm "PostgreSQL password (for superuser 'postgres')")
     fi
 
+    local dashboard_username
+    if [ -f "${ENV_BASE}" ] && grep -q "DASHBOARD_USERNAME" "${ENV_BASE}"; then
+        dashboard_username=$(grep "DASHBOARD_USERNAME" "${ENV_BASE}" | cut -d'=' -f2)
+    else
+        dashboard_username=$(prompt_input "Dashboard username" "supabase" "supabase")
+    fi
+
     local dashboard_password
     if [ -f "${ENV_BASE}" ] && grep -q "DASHBOARD_PASSWORD" "${ENV_BASE}"; then
         info "Using existing Dashboard password"
@@ -101,6 +110,40 @@ cmd_init() {
         dashboard_password=$(prompt_password_confirm "Studio Dashboard password")
     fi
 
+    # Generate base secrets (for shared services)
+    info "Generating base secrets…"
+    local jwt_secret
+    jwt_secret=$(generate_jwt_secret)
+    local secret_key_base
+    secret_key_base=$(generate_secret_key_base)
+    local pg_meta_crypto_key
+    pg_meta_crypto_key=$(generate_encryption_key)
+    local vault_enc_key
+    vault_enc_key=$(generate_encryption_key)
+    local pooler_tenant_id
+    pooler_tenant_id=$(generate_pooler_tenant_id)
+
+    # Generate base JWT keys for shared services
+    local base_anon_key
+    base_anon_key=$(generate_supabase_jwt "${jwt_secret}" "anon" 2>/dev/null || echo "")
+    local base_service_role_key
+    base_service_role_key=$(generate_supabase_jwt "${jwt_secret}" "service_role" 2>/dev/null || echo "")
+
+    # If JWT generation failed, warn user
+    if [ -z "${base_anon_key}" ] || [ -z "${base_service_role_key}" ]; then
+        warning "Could not generate proper JWT keys. Please regenerate using Supabase's official tool."
+        base_anon_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.REPLACE_WITH_PROPER_KEY"
+        base_service_role_key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJzZXJ2aWNlX3JvbGUiLAogICAgImlzcyI6ICJzdXBhYmFzZS1kZW1vIiwKICAgICJpYXQiOiAxNjQxNzY5MjAwLAogICAgImV4cCI6IDE3OTk1MzU2MDAKfQ.REPLACE_WITH_PROPER_KEY"
+    fi
+
+    # Prompt for URLs (can be updated later per project)
+    echo ""
+    info "Configure base URLs (these can be overridden per project)"
+    local site_url
+    site_url=$(prompt_input "SITE_URL (base URL for auth callbacks)" "" "http://localhost:8000")
+    local public_url
+    public_url=$(prompt_input "PUBLIC_URL (public API URL)" "" "http://localhost:8000")
+
     # Create .env.base
     cat > "${ENV_BASE}" << EOF
 # Indie Ventures Base Configuration
@@ -109,12 +152,31 @@ cmd_init() {
 # PostgreSQL
 POSTGRES_PASSWORD=${postgres_password}
 POSTGRES_HOST=postgres
+POSTGRES_DB=postgres
 POSTGRES_PORT=5432
 
-# Studio Dashboard
+# Studio Dashboard Authentication
+DASHBOARD_USERNAME=${dashboard_username}
 DASHBOARD_PASSWORD=${dashboard_password}
 STUDIO_DEFAULT_ORGANIZATION=Indie Ventures
 STUDIO_DEFAULT_PROJECT=Default
+
+# Base Secrets (for shared services)
+JWT_SECRET=${jwt_secret}
+SECRET_KEY_BASE=${secret_key_base}
+PG_META_CRYPTO_KEY=${pg_meta_crypto_key}
+VAULT_ENC_KEY=${vault_enc_key}
+POOLER_TENANT_ID=${pooler_tenant_id}
+
+# Base API Keys (for shared services - will be replaced per project)
+ANON_KEY=${base_anon_key}
+SERVICE_ROLE_KEY=${base_service_role_key}
+
+# URLs
+SITE_URL=${site_url}
+PUBLIC_URL=${public_url}
+SUPABASE_PUBLIC_URL=${public_url}
+API_EXTERNAL_URL=${public_url}
 
 # Default Settings
 PGRST_DB_SCHEMAS=public,storage,graphql_public
@@ -122,6 +184,16 @@ JWT_EXPIRY=3600
 DISABLE_SIGNUP=false
 ENABLE_EMAIL_SIGNUP=true
 ENABLE_EMAIL_AUTOCONFIRM=false
+ENABLE_ANONYMOUS_USERS=false
+ENABLE_PHONE_SIGNUP=false
+ENABLE_PHONE_AUTOCONFIRM=false
+ADDITIONAL_REDIRECT_URLS=
+
+# Mailer URL Paths
+MAILER_URLPATHS_CONFIRMATION=/auth/v1/verify
+MAILER_URLPATHS_INVITE=/auth/v1/verify
+MAILER_URLPATHS_RECOVERY=/auth/v1/verify
+MAILER_URLPATHS_EMAIL_CHANGE=/auth/v1/verify
 
 # SMTP (optional - configure for email features)
 SMTP_ADMIN_EMAIL=admin@example.com
@@ -130,6 +202,29 @@ SMTP_PORT=587
 SMTP_USER=
 SMTP_PASS=
 SMTP_SENDER_NAME=Indie Ventures
+
+# Kong API Gateway
+KONG_HTTP_PORT=8000
+KONG_HTTPS_PORT=8443
+
+# Supavisor Pooler
+POOLER_PROXY_PORT_TRANSACTION=6543
+POOLER_DEFAULT_POOL_SIZE=20
+POOLER_MAX_CLIENT_CONN=100
+POOLER_DB_POOL_SIZE=5
+
+# Image Proxy
+IMGPROXY_ENABLE_WEBP_DETECTION=true
+
+# Functions
+FUNCTIONS_VERIFY_JWT=false
+
+# Analytics (Logflare)
+LOGFLARE_PUBLIC_ACCESS_TOKEN=$(openssl rand -hex 32)
+LOGFLARE_PRIVATE_ACCESS_TOKEN=$(openssl rand -hex 32)
+
+# Docker
+DOCKER_SOCKET_LOCATION=/var/run/docker.sock
 EOF
 
     success "Created base configuration"
@@ -145,6 +240,37 @@ EOF
         cp "${TEMPLATES_DIR}/nginx.conf" "${INDIE_DIR}/nginx/nginx.conf"
         success "Created Nginx configuration"
     fi
+
+    # Fetch Supabase official setup for migrations and configs
+    # This is required - docker-compose.yml references SQL files from this setup
+    info "Fetching Supabase official Docker setup (for migrations and configurations)…"
+    if ! fetch_supabase_setup; then
+        error "Failed to fetch Supabase official setup"
+        error "This is required for proper Supabase initialization."
+        error ""
+        error "Please ensure:"
+        error "  1. Git is installed and accessible"
+        error "  2. You have network connectivity to github.com"
+        error "  3. You can manually clone: https://github.com/supabase/supabase.git"
+        error ""
+        error "You can retry initialization or manually clone the repository to:"
+        error "  ${INDIE_DIR}/supabase-official"
+        exit 1
+    fi
+
+    # Initialize Supabase volumes (copy migration files, etc.)
+    # This is also required - docker-compose.yml needs these files
+    info "Initializing Supabase volumes and migration files…"
+    if ! init_supabase_volumes; then
+        error "Failed to initialize Supabase volumes"
+        error "Migration files are required for proper database initialization."
+        error ""
+        error "Supabase setup was fetched, but volume initialization failed."
+        error "Check file permissions and disk space."
+        exit 1
+    fi
+
+    success "Initialized Supabase schema migrations"
 
     # Initialize docker-compose.yml
     info "Setting up Docker Compose…"
