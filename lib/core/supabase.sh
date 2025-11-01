@@ -25,14 +25,16 @@ fetch_supabase_setup() {
     local temp_dir
     temp_dir=$(mktemp -d)
 
-    if ! git clone --depth 1 --filter=blob:none https://github.com/supabase/supabase.git "${temp_dir}" >/dev/null 2>&1; then
-        error "Failed to fetch Supabase official setup"
+    # Clone shallow repository (depth 1 = only latest commit)
+    if ! git clone --depth 1 https://github.com/supabase/supabase.git "${temp_dir}" >/dev/null 2>&1; then
+        error "Failed to clone Supabase repository"
         rm -rf "${temp_dir}"
         return 1
     fi
 
-    # Configure sparse checkout to only get docker directory
+    # Configure sparse checkout to only get docker directory (saves bandwidth and time)
     cd "${temp_dir}" || return 1
+    
     if ! git sparse-checkout init --cone >/dev/null 2>&1; then
         error "Failed to initialize sparse checkout"
         cd - >/dev/null || true
@@ -40,6 +42,7 @@ fetch_supabase_setup() {
         return 1
     fi
     
+    # Set sparse checkout to docker directory - this keeps only docker/ in working tree
     if ! git sparse-checkout set docker >/dev/null 2>&1; then
         error "Failed to configure sparse checkout for docker directory"
         cd - >/dev/null || true
@@ -47,38 +50,75 @@ fetch_supabase_setup() {
         return 1
     fi
     
-    # Checkout the docker directory (sparse checkout needs this to actually get the files)
-    if ! git checkout >/dev/null 2>&1; then
-        error "Failed to checkout docker directory"
-        cd - >/dev/null || true
-        rm -rf "${temp_dir}"
-        return 1
+    # Apply sparse checkout - removes everything except docker/ from working tree
+    # Files are already in the repo, this just updates the working directory
+    if ! git read-tree -mu HEAD >/dev/null 2>&1; then
+        # Alternative: checkout only the docker directory
+        if ! git checkout HEAD -- docker >/dev/null 2>&1; then
+            error "Failed to checkout docker directory files"
+            cd - >/dev/null || true
+            rm -rf "${temp_dir}"
+            return 1
+        fi
     fi
 
-    # Verify docker directory exists with volumes
-    if ! [ -d "${temp_dir}/docker" ] || ! [ -d "${temp_dir}/docker/volumes" ]; then
-        error "Docker directory or volumes not found after checkout"
+    # Verify docker directory exists with volumes - check with verbose output if needed
+    if ! [ -d "${temp_dir}/docker" ]; then
+        error "Docker directory not found after checkout"
         error "Directory structure at ${temp_dir}:"
         ls -la "${temp_dir}" >&2 || true
+        error "Sparse checkout list:"
+        git sparse-checkout list >&2 || true
         cd - >/dev/null || true
         rm -rf "${temp_dir}"
         return 1
     fi
+    
+    if ! [ -d "${temp_dir}/docker/volumes" ]; then
+        error "Docker volumes directory not found"
+        error "Contents of ${temp_dir}/docker:"
+        ls -la "${temp_dir}/docker" >&2 || true
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    verbose_log "Verified docker directory structure in temp location"
 
     # Copy docker directory to target
+    # target_dir is ${INDIE_DIR}/supabase-official, so we copy docker/ into it
     mkdir -p "$(dirname "${target_dir}")"
-    if ! cp -r "${temp_dir}/docker" "${target_dir}"; then
-        error "Failed to copy docker directory to ${target_dir}"
+    verbose_log "Copying from ${temp_dir}/docker to ${target_dir}/docker"
+    
+    # Remove target docker directory if it exists to ensure clean copy
+    if [ -d "${target_dir}/docker" ]; then
+        rm -rf "${target_dir}/docker"
+    fi
+    
+    if ! cp -r "${temp_dir}/docker" "${target_dir}/"; then
+        error "Failed to copy docker directory"
+        error "Source: ${temp_dir}/docker (exists: $([ -d "${temp_dir}/docker" ] && echo "yes" || echo "no"))"
+        error "Target: ${target_dir} (exists: $([ -d "${target_dir}" ] && echo "yes" || echo "no"))"
+        error "Target parent: $(dirname "${target_dir}") (exists: $([ -d "$(dirname "${target_dir}")" ] && echo "yes" || echo "no"))"
         cd - >/dev/null || true
         rm -rf "${temp_dir}"
         return 1
     fi
 
-    # Verify the copy succeeded
-    if ! [ -d "${target_dir}/docker" ] || ! [ -d "${target_dir}/docker/volumes" ]; then
-        error "Copy verification failed - files not found at ${target_dir}/docker"
-        error "Copy source: ${temp_dir}/docker"
-        error "Copy target: ${target_dir}"
+    # Verify the copy succeeded - check that docker/ exists inside target_dir
+    if ! [ -d "${target_dir}/docker" ]; then
+        error "Copy verification failed - docker directory does not exist at: ${target_dir}/docker"
+        error "Target directory contents:"
+        ls -la "${target_dir}" >&2 || true
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    if ! [ -d "${target_dir}/docker/volumes" ]; then
+        error "Copy verification failed - volumes directory missing at ${target_dir}/docker/volumes"
+        error "Contents of ${target_dir}/docker:"
+        ls -la "${target_dir}/docker" >&2 || true
         cd - >/dev/null || true
         rm -rf "${temp_dir}"
         return 1
@@ -86,13 +126,17 @@ fetch_supabase_setup() {
 
     verbose_log "Copied Supabase setup to: ${target_dir}/docker"
     verbose_log "Volumes directory: ${target_dir}/docker/volumes"
+    
+    # List what was actually copied for verification
+    verbose_log "Sample files copied:"
+    find "${target_dir}/docker" -type f | head -10 | sed 's/^/  /' >&2 || true
 
     # Cleanup
     cd - >/dev/null || true
     rm -rf "${temp_dir}"
 
     success "Fetched Supabase official setup"
-    verbose_log "Location: ${target_dir}/docker"
+    info "Location: ${target_dir}"
     return 0
 }
 
