@@ -13,7 +13,15 @@ wait_for_postgres() {
 
     # First check if container exists and is running
     local container_status
-    container_status=$(in_indie_dir ${compose_cmd} ps postgres --format json 2>/dev/null | jq -r '.[0].State' 2>/dev/null || echo "missing")
+    local json_output
+    json_output=$(in_indie_dir ${compose_cmd} ps postgres --format json 2>/dev/null)
+    if [ -z "${json_output}" ] || [ "${json_output}" = "[]" ]; then
+        container_status="missing"
+    else
+        container_status=$(echo "${json_output}" | jq -r '.[0].State // "missing"' 2>/dev/null || echo "missing")
+        # Clean up any newlines or unexpected characters
+        container_status=$(echo "${container_status}" | tr -d '\n\r' | head -n 1)
+    fi
 
     verbose_log "PostgreSQL container status: ${container_status}"
 
@@ -89,8 +97,10 @@ database_exists() {
 
     local result
     result=$(pg_exec "SELECT 1 FROM pg_database WHERE datname='${dbname}'" "postgres" 2>/dev/null | grep -c "(1 row)" || echo "0")
+    # Strip newlines and whitespace to ensure clean integer comparison
+    result=$(echo "${result}" | tr -d '\n\r\t ')
 
-    [ "${result}" -eq 1 ]
+    [ "${result:-0}" -eq 1 ]
 }
 
 # Create database for project
