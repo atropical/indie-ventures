@@ -128,8 +128,7 @@ remove_project_secrets() {
     project_name_upper=$(echo "${project_name}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
     # Remove lines for this project
-    sed -i.bak "/# ===== Project: ${project_name} =====/,/^${project_name_upper}_SERVICE_ROLE_KEY=/d" "${ENV_PROJECTS}"
-    rm -f "${ENV_PROJECTS}.bak"
+    sed_in_place "/# ===== Project: ${project_name} =====/,/^${project_name_upper}_SERVICE_ROLE_KEY=/d" "${ENV_PROJECTS}"
 
     success "Removed secrets for ${project_name}"
 }

@@ -9,13 +9,12 @@ generate_project_nginx_config() {
     local architecture
     architecture=$(get_project_property "${project_name}" "architecture")
 
-    local template_file="${SCRIPT_DIR}/../templates/nginx-site.conf.template"
-    local output_file="${INDIE_DIR}/nginx/sites/${project_name}.conf"
-
-    if ! [ -f "${template_file}" ]; then
-        error "Nginx site template not found"
+    if [ -z "${architecture}" ]; then
+        error "Could not determine architecture for project '${project_name}'"
         return 1
     fi
+
+    local output_file="${INDIE_DIR}/nginx/sites/${project_name}.conf"
 
     # Determine backend based on architecture
     local backend
@@ -106,6 +105,11 @@ generate_project_nginx_config_with_ssl() {
     local domains=("${@:2}")
     local architecture
     architecture=$(get_project_property "${project_name}" "architecture")
+
+    if [ -z "${architecture}" ]; then
+        error "Could not determine architecture for project '${project_name}'"
+        return 1
+    fi
 
     local output_file="${INDIE_DIR}/nginx/sites/${project_name}.conf"
 

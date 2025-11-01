@@ -106,8 +106,25 @@ get_certificate_days_remaining() {
     local expiry_date
     expiry_date=$(openssl x509 -enddate -noout -in "${cert_path}" 2>/dev/null | cut -d= -f2)
 
+    if [ -z "${expiry_date}" ]; then
+        echo "0"
+        return 1
+    fi
+
+    # Parse date based on OS
+    # openssl outputs format like: "Mon Jan  1 12:00:00 2030 GMT"
     local expiry_epoch
-    expiry_epoch=$(date -d "${expiry_date}" +%s 2>/dev/null || date -j -f "%b %d %H:%M:%S %Y %Z" "${expiry_date}" +%s 2>/dev/null)
+    if date -d "${expiry_date}" +%s 2>/dev/null; then
+        # GNU date (Linux)
+        expiry_epoch=$(date -d "${expiry_date}" +%s)
+    elif date -j -f "%a %b %e %H:%M:%S %Y %Z" "${expiry_date}" +%s 2>/dev/null; then
+        # BSD date (macOS) - format: "Mon Jan  1 12:00:00 2030 GMT"
+        expiry_epoch=$(date -j -f "%a %b %e %H:%M:%S %Y %Z" "${expiry_date}" +%s)
+    else
+        error "Cannot parse certificate expiry date: ${expiry_date}"
+        echo "0"
+        return 1
+    fi
 
     local now_epoch
     now_epoch=$(date +%s)

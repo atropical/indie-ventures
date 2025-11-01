@@ -23,11 +23,13 @@ else
 fi
 
 # Set templates directory (prefer env var from Homebrew if available)
+# This will be used by utils.sh if not already set
 if [ -n "${INDIE_TEMPLATES_DIR:-}" ]; then
     TEMPLATES_DIR="${INDIE_TEMPLATES_DIR}"
 else
     TEMPLATES_DIR="${SCRIPT_DIR}/../templates"
 fi
+export TEMPLATES_DIR
 
 # Load core utilities
 # shellcheck source=../lib/core/utils.sh

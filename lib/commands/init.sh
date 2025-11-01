@@ -142,7 +142,7 @@ EOF
 
     # Copy nginx.conf template
     if ! [ -f "${INDIE_DIR}/nginx/nginx.conf" ]; then
-        cp "${SCRIPT_DIR}/../templates/nginx.conf" "${INDIE_DIR}/nginx/nginx.conf"
+        cp "${TEMPLATES_DIR}/nginx.conf" "${INDIE_DIR}/nginx/nginx.conf"
         success "Created Nginx configuration"
     fi
 

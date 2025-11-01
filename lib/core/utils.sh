@@ -36,6 +36,19 @@ PROJECTS_FILE="${INDIE_DIR}/projects/registry.json"
 ENV_BASE="${INDIE_DIR}/.env.base"
 ENV_PROJECTS="${INDIE_DIR}/.env.projects"
 
+# Set templates directory (consistent with bin/indie logic)
+# This allows library functions to access templates without SCRIPT_DIR
+# If not already set (e.g., by bin/indie), derive from LIB_DIR
+if [ -z "${TEMPLATES_DIR:-}" ]; then
+    if [ -n "${INDIE_TEMPLATES_DIR:-}" ]; then
+        TEMPLATES_DIR="${INDIE_TEMPLATES_DIR}"
+    elif [ -n "${LIB_DIR:-}" ]; then
+        # Derive from LIB_DIR: if lib is at /path/lib, templates is at /path/templates
+        TEMPLATES_DIR="$(dirname "${LIB_DIR}")/templates"
+    fi
+fi
+export TEMPLATES_DIR
+
 # Logging functions
 info() {
     echo -e "${BLUE}ℹ${NC} $*"
@@ -244,3 +257,25 @@ get_docker_compose_cmd() {
 in_indie_dir() {
     ( cd "${INDIE_DIR}" && "$@" )
 }
+
+# Portable sed in-place edit (works on both GNU and BSD sed)
+# Usage: sed_in_place <file> <sed-arguments...>
+sed_in_place() {
+    local file="$1"
+    shift
+    # Try GNU sed first (creates backup with extension)
+    if sed -i.tmp "$@" "${file}" 2>/dev/null; then
+        rm -f "${file}.tmp"
+        return 0
+    fi
+    # Try BSD sed (requires empty string as backup extension)
+    if sed -i '' "$@" "${file}" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+# Error handling convention:
+# - Library functions (lib/core/, lib/ui/) should RETURN exit codes (0/1)
+# - Command functions (lib/commands/) should EXIT with codes (exit 1/exit 0)
+# This allows library functions to be used conditionally without terminating the script

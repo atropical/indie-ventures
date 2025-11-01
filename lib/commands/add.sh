@@ -71,6 +71,11 @@ cmd_add() {
     local architecture
     architecture=$(prompt_choice "Architecture" "shared" "isolated")
 
+    if [ -z "${architecture}" ]; then
+        error "Architecture selection failed"
+        exit 1
+    fi
+
     # Prompt for domains
     local domains=()
     info "Enter domain(s) for this project (space-separated)"
@@ -81,7 +86,9 @@ cmd_add() {
     domains_input=$(prompt_input "Domains" "" "project.yourdomain.com")
 
     # Split domains
+    local old_ifs="${IFS}"
     IFS=' ' read -ra domains <<< "${domains_input}"
+    IFS="${old_ifs}"
 
     # Validate domains
     for domain in "${domains[@]}"; do
@@ -124,7 +131,7 @@ cmd_add() {
 
     # Create database
     verbose_log "Starting database creation process for: ${project_name}"
-    if ! with_spinner "Creating database" "create_project_database '${project_name}'"; then
+    if ! with_spinner "Creating database" "create_project_database ${project_name}"; then
         error "Failed to create database"
         exit 1
     fi
@@ -140,7 +147,13 @@ cmd_add() {
     if [ "${architecture}" = "isolated" ]; then
         # Calculate next available port offset
         local existing_count
-        existing_count=$(jq 'to_entries | map(select(.value.architecture == "isolated")) | length' "${PROJECTS_FILE}")
+        existing_count=$(jq 'to_entries | map(select(.value.architecture == "isolated")) | length' "${PROJECTS_FILE}" 2>/dev/null || echo "0")
+        # Ensure we have a valid number
+        existing_count="${existing_count:-0}"
+        # Validate it's numeric
+        if ! [[ "${existing_count}" =~ ^[0-9]+$ ]]; then
+            existing_count=0
+        fi
         ports_offset=$((80 + existing_count + 1))
     fi
 

@@ -9,7 +9,7 @@ get_compose_cmd() {
 
 # Initialize docker-compose.yml from template
 init_docker_compose() {
-    local template_file="${SCRIPT_DIR}/../templates/docker-compose.base.yml"
+    local template_file="${TEMPLATES_DIR}/docker-compose.base.yml"
     local target_file="${INDIE_DIR}/docker-compose.yml"
 
     if [ -f "${target_file}" ]; then
@@ -130,7 +130,7 @@ pull_images() {
 
 # Add shared services to docker-compose.yml
 add_shared_services() {
-    local template_file="${SCRIPT_DIR}/../templates/docker-compose.shared.yml"
+    local template_file="${TEMPLATES_DIR}/docker-compose.shared.yml"
     local target_file="${INDIE_DIR}/docker-compose.yml"
 
     if ! [ -f "${template_file}" ]; then
@@ -156,7 +156,7 @@ add_shared_services() {
 add_isolated_project() {
     local project_name="$1"
     local ports_offset="$2"  # Used to calculate unique ports
-    local template_file="${SCRIPT_DIR}/../templates/docker-compose.isolated.yml"
+    local template_file="${TEMPLATES_DIR}/docker-compose.isolated.yml"
     local target_file="${INDIE_DIR}/docker-compose.yml"
 
     if ! [ -f "${template_file}" ]; then
@@ -204,8 +204,7 @@ remove_project_services() {
 
     # Remove project section
     # This is a simplified approach; proper implementation would use yq or similar
-    sed -i.tmp "/# PROJECT: ${project_name}/,/^$/d" "${target_file}"
-    rm -f "${target_file}.tmp"
+    sed_in_place "/# PROJECT: ${project_name}/,/^$/d" "${target_file}"
 
     success "Removed services for ${project_name}"
     return 0
