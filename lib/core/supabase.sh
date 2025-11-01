@@ -25,20 +25,54 @@ fetch_supabase_setup() {
     local temp_dir
     temp_dir=$(mktemp -d)
 
-    if ! git clone --depth 1 --filter=blob:none --sparse https://github.com/supabase/supabase.git "${temp_dir}" >/dev/null 2>&1; then
+    if ! git clone --depth 1 --filter=blob:none https://github.com/supabase/supabase.git "${temp_dir}" >/dev/null 2>&1; then
         error "Failed to fetch Supabase official setup"
         rm -rf "${temp_dir}"
         return 1
     fi
 
     # Configure sparse checkout to only get docker directory
-    cd "${temp_dir}"
-    git sparse-checkout init --cone >/dev/null 2>&1
-    git sparse-checkout set docker >/dev/null 2>&1
+    cd "${temp_dir}" || return 1
+    if ! git sparse-checkout init --cone >/dev/null 2>&1; then
+        error "Failed to initialize sparse checkout"
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    if ! git sparse-checkout set docker >/dev/null 2>&1; then
+        error "Failed to configure sparse checkout for docker directory"
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
+    
+    # Checkout the docker directory (sparse checkout needs this to actually get the files)
+    if ! git checkout >/dev/null 2>&1; then
+        error "Failed to checkout docker directory"
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
+
+    # Verify docker directory exists with volumes
+    if ! [ -d "${temp_dir}/docker" ] || ! [ -d "${temp_dir}/docker/volumes" ]; then
+        error "Docker directory or volumes not found after checkout"
+        error "Directory structure at ${temp_dir}:"
+        ls -la "${temp_dir}" >&2 || true
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
 
     # Copy docker directory to target
     mkdir -p "$(dirname "${target_dir}")"
-    cp -r "${temp_dir}/docker" "${target_dir}"
+    if ! cp -r "${temp_dir}/docker" "${target_dir}"; then
+        error "Failed to copy docker directory to ${target_dir}"
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
 
     # Cleanup
     cd - >/dev/null || true
