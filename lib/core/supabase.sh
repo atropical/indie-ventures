@@ -74,11 +74,25 @@ fetch_supabase_setup() {
         return 1
     fi
 
+    # Verify the copy succeeded
+    if ! [ -d "${target_dir}/docker" ] || ! [ -d "${target_dir}/docker/volumes" ]; then
+        error "Copy verification failed - files not found at ${target_dir}/docker"
+        error "Copy source: ${temp_dir}/docker"
+        error "Copy target: ${target_dir}"
+        cd - >/dev/null || true
+        rm -rf "${temp_dir}"
+        return 1
+    fi
+
+    verbose_log "Copied Supabase setup to: ${target_dir}/docker"
+    verbose_log "Volumes directory: ${target_dir}/docker/volumes"
+
     # Cleanup
     cd - >/dev/null || true
     rm -rf "${temp_dir}"
 
     success "Fetched Supabase official setup"
+    verbose_log "Location: ${target_dir}/docker"
     return 0
 }
 
@@ -103,10 +117,21 @@ init_supabase_volumes() {
     local source_dir="${INDIE_DIR}/supabase-official/docker/volumes"
     local target_dir="${INDIE_DIR}/volumes/supabase"
 
+    verbose_log "Looking for Supabase volumes at: ${source_dir}"
+
     if ! [ -d "${source_dir}" ]; then
-        error "Supabase official volumes not found"
+        error "Supabase official volumes not found at: ${source_dir}"
+        error "Expected location: ${INDIE_DIR}/supabase-official/docker/volumes"
+        if [ -d "${INDIE_DIR}/supabase-official" ]; then
+            error "Contents of ${INDIE_DIR}/supabase-official:"
+            ls -la "${INDIE_DIR}/supabase-official" >&2 || true
+        else
+            error "${INDIE_DIR}/supabase-official does not exist"
+        fi
         return 1
     fi
+
+    verbose_log "Found Supabase volumes at: ${source_dir}"
 
     # Copy volumes structure (but not data)
     mkdir -p "${target_dir}"
