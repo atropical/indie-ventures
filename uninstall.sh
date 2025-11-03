@@ -59,8 +59,9 @@ remove_installation() {
         success "Removed symlink: ${BIN_LINK}"
     fi
 
-    # Remove installation directory
-    if [ -d "$INSTALL_DIR" ]; then
+    # Remove installation directory only if it's different from data directory
+    # If they're the same, we'll handle it in ask_remove_data()
+    if [ -d "$INSTALL_DIR" ] && [ "$INSTALL_DIR" != "$DATA_DIR" ]; then
         rm -rf "$INSTALL_DIR"
         success "Removed directory: ${INSTALL_DIR}"
     fi
@@ -82,6 +83,12 @@ ask_remove_data() {
     if [ -d "$DATA_DIR" ]; then
         echo ""
         warn "Project data still exists at: ${DATA_DIR}"
+        
+        # If DATA_DIR is the same as INSTALL_DIR, mention that installation files are included
+        if [ "$DATA_DIR" = "$INSTALL_DIR" ]; then
+            warn "Note: This directory also contains the Indie Ventures installation files"
+        fi
+        
         echo ""
         read -p "Remove ALL project data? This cannot be undone! (y/N) " -n 1 -r
         echo
@@ -92,6 +99,22 @@ ask_remove_data() {
             success "Project data removed"
         else
             info "Project data preserved at: ${DATA_DIR}"
+        fi
+    elif [ "$DATA_DIR" = "$INSTALL_DIR" ] && [ -d "$INSTALL_DIR" ]; then
+        # This handles the edge case where INSTALL_DIR still exists but DATA_DIR check failed
+        # (shouldn't happen, but defensive programming)
+        echo ""
+        warn "Installation directory still exists at: ${INSTALL_DIR}"
+        echo ""
+        read -p "Remove installation directory? (y/N) " -n 1 -r
+        echo
+        
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            info "Removing installation directory…"
+            rm -rf "$INSTALL_DIR"
+            success "Installation directory removed"
+        else
+            info "Installation directory preserved at: ${INSTALL_DIR}"
         fi
     fi
 }
@@ -115,6 +138,12 @@ show_remaining() {
     if [ -d "$DATA_DIR" ]; then
         echo "Project data:"
         echo "  - ${DATA_DIR}"
+        echo ""
+    fi
+    
+    if [ -d "$INSTALL_DIR" ] && [ "$INSTALL_DIR" != "$DATA_DIR" ]; then
+        echo "Installation directory:"
+        echo "  - ${INSTALL_DIR}"
         echo ""
     fi
     
