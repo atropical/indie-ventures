@@ -24,14 +24,23 @@ cmd_init() {
     # Use default if empty, otherwise use provided path
     if [ -n "$user_data_dir" ]; then
         INDIE_DIR="$user_data_dir"
-        # Update dependent paths
-        PROJECTS_FILE="${INDIE_DIR}/projects/registry.json"
-        ENV_BASE="${INDIE_DIR}/.env.base"
-        ENV_PROJECTS="${INDIE_DIR}/.env.projects"
-        info "Using data directory: ${INDIE_DIR}"
-    else
-        info "Using default directory: ${INDIE_DIR}"
     fi
+
+    # Convert to absolute path if relative
+    if [[ ! "${INDIE_DIR}" = /* ]]; then
+        INDIE_DIR="$(cd "$(dirname "${INDIE_DIR}")" && pwd)/$(basename "${INDIE_DIR}")"
+        # If the directory doesn't exist yet, resolve from current directory
+        if [ ! -d "${INDIE_DIR}" ]; then
+            INDIE_DIR="$(pwd)/${user_data_dir:-indie-ventures}"
+        fi
+    fi
+
+    # Update dependent paths
+    PROJECTS_FILE="${INDIE_DIR}/projects/registry.json"
+    ENV_BASE="${INDIE_DIR}/.env.base"
+    ENV_PROJECTS="${INDIE_DIR}/.env.projects"
+
+    info "Using data directory: ${INDIE_DIR}"
     echo ""
 
     # Check if already initialized
