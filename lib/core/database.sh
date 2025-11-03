@@ -10,6 +10,15 @@ wait_for_postgres() {
     compose_cmd=$(get_docker_compose_cmd)
 
     verbose_log "Checking PostgreSQL container status…"
+    verbose_log "INDIE_DIR: ${INDIE_DIR}"
+    verbose_log "Compose file: ${INDIE_DIR}/docker-compose.yml"
+
+    # Check if docker-compose.yml exists
+    if [ ! -f "${INDIE_DIR}/docker-compose.yml" ]; then
+        error "Docker Compose file not found: ${INDIE_DIR}/docker-compose.yml"
+        error "Please run 'indie init' first to initialize the infrastructure"
+        return 1
+    fi
 
     # First check if container exists and is running
     local container_status
@@ -27,7 +36,15 @@ wait_for_postgres() {
 
     if [ "${container_status}" != "running" ]; then
         error "PostgreSQL container is not running (status: ${container_status})"
-        error "Please ensure services are started with: indie status"
+        error ""
+        error "INDIE_DIR is set to: ${INDIE_DIR}"
+        if [ ! -d "${INDIE_DIR}" ]; then
+            error "This directory does not exist!"
+        fi
+        error ""
+        error "Please ensure services are started with:"
+        error "  cd ${INDIE_DIR} && docker compose up -d"
+        error "Or check status with: indie status"
         return 1
     fi
 
