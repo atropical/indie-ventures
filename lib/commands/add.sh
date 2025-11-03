@@ -16,6 +16,15 @@ cmd_add() {
 
     show_header "Add New Supabase Project"
 
+    # Check if docker-compose.yml exists (critical for all operations)
+    if [ ! -f "${INDIE_DIR}/docker-compose.yml" ]; then
+        error "Docker Compose file not found: ${INDIE_DIR}/docker-compose.yml"
+        error "INDIE_DIR is set to: ${INDIE_DIR}"
+        error ""
+        error "Please run 'indie init' first to initialize the infrastructure"
+        exit 1
+    fi
+
     # Track if we started services (for cleanup on error)
     local services_started_by_script=false
 
@@ -33,7 +42,9 @@ cmd_add() {
     # Ensure base services (postgres) are running
     local compose_cmd
     compose_cmd=$(get_docker_compose_cmd)
-    
+
+    verbose_log "Checking PostgreSQL status at ${INDIE_DIR}"
+
     local postgres_status
     postgres_status=$(in_indie_dir ${compose_cmd} ps postgres --format json 2>/dev/null | jq -r '.[0].State' 2>/dev/null || echo "missing")
     
